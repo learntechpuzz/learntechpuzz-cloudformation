@@ -9,6 +9,9 @@ Parameters:
     Description: Application name
   S3BucketName:
     Type: String
+    Description: Name of S3 bucket to hold website content.
+  S3SAMBucketName:
+    Type: String
     Description: The name of the S3 bucket in which the Swagger specification can
       be found.
   StageName:
@@ -107,7 +110,7 @@ Resources:
       FunctionName: CloudFormationSendResponse
       Runtime: nodejs8.10
       Code:
-        S3Bucket: learntechpuzz-dev
+        S3Bucket: learntechpuzz-sam
         S3Key: 6c3fbd6b7b429dc41d1b27e2b1ff6754
       Handler: index.handler
       Role:
@@ -120,8 +123,8 @@ Resources:
       FunctionName: CognitoUserPoolClientSettings
       Runtime: nodejs8.10
       Code:
-        S3Bucket: learntechpuzz-dev
-        S3Key: 4b27395e5509fa123dc50b1137d6d455
+        S3Bucket: learntechpuzz-sam
+        S3Key: be607ce5b018a9f5491c91716f9e89b2
       Handler: CognitoUserPoolClientSettings.handler
       Role:
         Fn::GetAtt:
@@ -134,8 +137,8 @@ Resources:
       FunctionName: CognitoUserPoolDomain
       Runtime: nodejs8.10
       Code:
-        S3Bucket: learntechpuzz-dev
-        S3Key: f4aca1541c15811d2bbe62128f65bde6
+        S3Bucket: learntechpuzz-sam
+        S3Key: 0705590b5bb73418e056c44ee1183d4a
       Handler: CognitoUserPoolDomain.handler
       Role:
         Fn::GetAtt:
@@ -218,9 +221,9 @@ Resources:
       SupportedIdentityProviders:
       - COGNITO
       CallbackURL:
-        Fn::Sub: https://s3.amazonaws.com/${ApplicationName}/secured.html
+        Fn::Sub: https://s3.amazonaws.com/${S3BucketName}/secured.html
       LogoutURL:
-        Fn::Sub: https://s3.amazonaws.com/${ApplicationName}/public.html
+        Fn::Sub: https://s3.amazonaws.com/${S3BucketName}/public.html
       AllowedOAuthFlowsUserPoolClient: true
       AllowedOAuthFlows:
       - code
@@ -239,7 +242,7 @@ Resources:
       UserPoolId:
         Ref: UserPool
       Domain:
-        Fn::Sub: learntechpuzz-${StageName}
+        Fn::Sub: ${S3BucketName}
   CognitoLambdaInvocationPermission:
     Type: AWS::Lambda::Permission
     Properties:
@@ -257,12 +260,12 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName:
-        Fn::Sub: ${ApplicationName}-${StageName}-create-user-post-confirmation
+        Fn::Sub: ${ApplicationName}-create-user-post-confirmation-function
       Runtime: java8
       Timeout: 300
       MemorySize: 512
       Handler: com.learntechpuzz.lambda.handler.UserHandler::createUserPostConfirmation
-      CodeUri: s3://learntechpuzz-dev/ce569ea768e914c1a93b9fefcc9d0a79
+      CodeUri: s3://learntechpuzz-sam/0c014a347b1ca17c6de940f1937c702a
       Policies:
       - DynamoDBCrudPolicy:
           TableName:
@@ -288,12 +291,12 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName:
-        Fn::Sub: ${ApplicationName}-${StageName}-create-user
+        Fn::Sub: ${ApplicationName}-create-user-function
       Runtime: java8
       Timeout: 300
       MemorySize: 512
       Handler: com.learntechpuzz.lambda.handler.UserHandler::createUser
-      CodeUri: s3://learntechpuzz-dev/ce569ea768e914c1a93b9fefcc9d0a79
+      CodeUri: s3://learntechpuzz-sam/0c014a347b1ca17c6de940f1937c702a
       Policies:
       - DynamoDBCrudPolicy:
           TableName:
@@ -314,7 +317,7 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       Name:
-        Fn::Sub: ${ApplicationName}-${StageName}
+        Fn::Sub: ${ApplicationName}-api
       StageName:
         Fn::Sub: ${StageName}
       DefinitionBody:
@@ -325,7 +328,7 @@ Resources:
               Fn::Join:
               - ''
               - - s3://
-                - Ref: S3BucketName
+                - Ref: S3SAMBucketName
                 - /swagger.yaml
   GatewayResponseBadRequestBody:
     Type: AWS::ApiGateway::GatewayResponse
@@ -345,11 +348,56 @@ Resources:
       RestApiId:
         Ref: RestApi
       StatusCode: '401'
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName:
+        Fn::Sub: ${S3BucketName}
+      AccessControl: PublicRead
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+    DeletionPolicy: Retain
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      PolicyDocument:
+        Id: S3BucketWebHostingPolicy
+        Version: 2012-10-17
+        Statement:
+        - Sid: PublicReadForGetBucketObjects
+          Effect: Allow
+          Principal: '*'
+          Action: s3:GetObject
+          Resource:
+            Fn::Join:
+            - ''
+            - - 'arn:aws:s3:::'
+              - Ref: S3Bucket
+              - /*
+      Bucket:
+        Ref: S3Bucket
 Outputs:
-  ApiUrl:
+  WebsiteURL:
+    Value:
+      Fn::GetAtt:
+      - S3Bucket
+      - WebsiteURL
+    Description: URL for website hosted on S3
+  S3BucketSecureURL:
+    Value:
+      Fn::Join:
+      - ''
+      - - https://
+        - Fn::GetAtt:
+          - S3Bucket
+          - DomainName
+    Description: Name of S3 bucket to hold website content
+  APIGatewayURL:
     Value:
       Fn::Join:
       - ''
       - - https://
         - Ref: RestApi
         - Fn::Sub: .execute-api.${AWS::Region}.amazonaws.com/${StageName}
+    Description: API Gateway endpoint

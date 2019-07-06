@@ -16,6 +16,9 @@ cd ..
 :: Delete SAM s3 bucket 
 call aws s3 rb s3://%S3SAMBucketName% --force
 
+:: Delete s3 bucket 
+call aws s3 rb s3://%S3BucketName% --force
+
 :: Create SAM s3 bucket
 call aws s3 mb s3://%S3SAMBucketName%
 
