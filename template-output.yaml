@@ -1,0 +1,355 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'Serverless Application Model implementation.
+
+  '
+Parameters:
+  ApplicationName:
+    Type: String
+    Description: Application name
+  S3BucketName:
+    Type: String
+    Description: The name of the S3 bucket in which the Swagger specification can
+      be found.
+  StageName:
+    Type: String
+    Default: dev
+    Description: The Lambda Function Stage
+  SourceEmail:
+    Type: String
+    Default: learntechpuzz@gmail.com
+    Description: Source email
+Resources:
+  CognitoAuthorizedRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Federated: cognito-identity.amazonaws.com
+          Action:
+          - sts:AssumeRoleWithWebIdentity
+          Condition:
+            StringEquals:
+              cognito-identity.amazonaws.com:aud:
+                Ref: IdentityPool
+            ForAnyValue:StringLike:
+              cognito-identity.amazonaws.com:amr: authenticated
+      Policies:
+      - PolicyName: CognitoAuthorizedPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - cognito-sync:*
+            - cognito-identity:*
+            Resource: '*'
+          - Effect: Allow
+            Action:
+            - lambda:InvokeFunction
+            - execute-api:Invoke
+            Resource: '*'
+  CognitoUserPoolClientDomainRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: CognitoUserPoolClientDomainRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action: sts:AssumeRole
+          Principal:
+            Service: lambda.amazonaws.com
+      Policies:
+      - PolicyName: WriteCloudWatchLogs
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Resource: arn:aws:logs:*:*:*
+      - PolicyName: UpdateUserPoolClient
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action: cognito-idp:UpdateUserPoolClient
+            Resource: arn:aws:cognito-idp:*:*:userpool/*
+      - PolicyName: ManageUserPoolDomain
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action: cognito-idp:CreateUserPoolDomain
+            Resource: arn:aws:cognito-idp:*:*:userpool/*
+          - Effect: Allow
+            Action: cognito-idp:DeleteUserPoolDomain
+            Resource: arn:aws:cognito-idp:*:*:userpool/*
+          - Effect: Allow
+            Action: cognito-idp:DescribeUserPoolDomain
+            Resource: '*'
+      - PolicyName: InvokeLambdaFunction
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action: lambda:InvokeFunction
+            Resource: arn:aws:lambda:*:*:function:*
+  CloudFormationSendResponse:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: CloudFormationSendResponse
+      Runtime: nodejs8.10
+      Code:
+        S3Bucket: learntechpuzz-dev
+        S3Key: 6c3fbd6b7b429dc41d1b27e2b1ff6754
+      Handler: index.handler
+      Role:
+        Fn::GetAtt:
+        - CognitoUserPoolClientDomainRole
+        - Arn
+  CognitoUserPoolClientSettings:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: CognitoUserPoolClientSettings
+      Runtime: nodejs8.10
+      Code:
+        S3Bucket: learntechpuzz-dev
+        S3Key: 4b27395e5509fa123dc50b1137d6d455
+      Handler: CognitoUserPoolClientSettings.handler
+      Role:
+        Fn::GetAtt:
+        - CognitoUserPoolClientDomainRole
+        - Arn
+    DependsOn: CloudFormationSendResponse
+  CognitoUserPoolDomain:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: CognitoUserPoolDomain
+      Runtime: nodejs8.10
+      Code:
+        S3Bucket: learntechpuzz-dev
+        S3Key: f4aca1541c15811d2bbe62128f65bde6
+      Handler: CognitoUserPoolDomain.handler
+      Role:
+        Fn::GetAtt:
+        - CognitoUserPoolClientDomainRole
+        - Arn
+    DependsOn: CloudFormationSendResponse
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName:
+        Fn::Sub: ${ApplicationName}-user-pool
+      MfaConfiguration: 'OFF'
+      AutoVerifiedAttributes:
+      - email
+      EmailConfiguration:
+        EmailSendingAccount: COGNITO_DEFAULT
+        ReplyToEmailAddress: learntechpuzz@gmail.com
+        SourceArn:
+          Fn::Sub: arn:aws:ses:us-east-1:${AWS::AccountId}:identity/${SourceEmail}
+      LambdaConfig:
+        PostConfirmation:
+          Fn::GetAtt:
+          - CreateUserPostConfirmationFunction
+          - Arn
+      Schema:
+      - Name: name
+        AttributeDataType: String
+        Mutable: true
+        Required: true
+      - Name: email
+        AttributeDataType: String
+        Mutable: false
+        Required: true
+      - Name: phone_number
+        AttributeDataType: String
+        Mutable: false
+        Required: true
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName:
+        Fn::Sub: ${ApplicationName}-client
+      GenerateSecret: false
+      UserPoolId:
+        Ref: UserPool
+  IdentityPool:
+    Type: AWS::Cognito::IdentityPool
+    Properties:
+      IdentityPoolName:
+        Fn::Sub: ${ApplicationName}Identity
+      AllowUnauthenticatedIdentities: false
+      CognitoIdentityProviders:
+      - ClientId:
+          Ref: UserPoolClient
+        ProviderName:
+          Fn::GetAtt:
+          - UserPool
+          - ProviderName
+  IdentityPoolRoleMapping:
+    Type: AWS::Cognito::IdentityPoolRoleAttachment
+    Properties:
+      IdentityPoolId:
+        Ref: IdentityPool
+      Roles:
+        authenticated:
+          Fn::GetAtt:
+          - CognitoAuthorizedRole
+          - Arn
+  UserPoolClientSettings:
+    Type: Custom::CognitoUserPoolClientSettings
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+        - CognitoUserPoolClientSettings
+        - Arn
+      UserPoolId:
+        Ref: UserPool
+      UserPoolClientId:
+        Ref: UserPoolClient
+      SupportedIdentityProviders:
+      - COGNITO
+      CallbackURL:
+        Fn::Sub: https://s3.amazonaws.com/${ApplicationName}/secured.html
+      LogoutURL:
+        Fn::Sub: https://s3.amazonaws.com/${ApplicationName}/public.html
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthFlows:
+      - code
+      - implicit
+      AllowedOAuthScopes:
+      - phone
+      - email
+      - openid
+  UserPoolDomain:
+    Type: Custom::CognitoUserPoolDomain
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+        - CognitoUserPoolDomain
+        - Arn
+      UserPoolId:
+        Ref: UserPool
+      Domain:
+        Fn::Sub: learntechpuzz-${StageName}
+  CognitoLambdaInvocationPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - CreateUserPostConfirmationFunction
+        - Arn
+      Principal: cognito-idp.amazonaws.com
+      SourceArn:
+        Fn::GetAtt:
+        - UserPool
+        - Arn
+  CreateUserPostConfirmationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName:
+        Fn::Sub: ${ApplicationName}-${StageName}-create-user-post-confirmation
+      Runtime: java8
+      Timeout: 300
+      MemorySize: 512
+      Handler: com.learntechpuzz.lambda.handler.UserHandler::createUserPostConfirmation
+      CodeUri: s3://learntechpuzz-dev/ce569ea768e914c1a93b9fefcc9d0a79
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: UserTable
+      Environment:
+        Variables:
+          USER_TABLE_NAME:
+            Ref: UserTable
+  UserTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+      - AttributeName: UserName
+        AttributeType: S
+      KeySchema:
+      - AttributeName: UserName
+        KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: '5'
+        WriteCapacityUnits: '5'
+      TableName: User
+  CreateUserFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName:
+        Fn::Sub: ${ApplicationName}-${StageName}-create-user
+      Runtime: java8
+      Timeout: 300
+      MemorySize: 512
+      Handler: com.learntechpuzz.lambda.handler.UserHandler::createUser
+      CodeUri: s3://learntechpuzz-dev/ce569ea768e914c1a93b9fefcc9d0a79
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: UserTable
+      Environment:
+        Variables:
+          USER_TABLE_NAME:
+            Ref: UserTable
+      Events:
+        UserApi:
+          Type: Api
+          Properties:
+            Path: /user
+            Method: POST
+            RestApiId:
+              Ref: RestApi
+  RestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name:
+        Fn::Sub: ${ApplicationName}-${StageName}
+      StageName:
+        Fn::Sub: ${StageName}
+      DefinitionBody:
+        Fn::Transform:
+          Name: AWS::Include
+          Parameters:
+            Location:
+              Fn::Join:
+              - ''
+              - - s3://
+                - Ref: S3BucketName
+                - /swagger.yaml
+  GatewayResponseBadRequestBody:
+    Type: AWS::ApiGateway::GatewayResponse
+    Properties:
+      ResponseParameters:
+        gatewayresponse.header.Access-Control-Allow-Origin: '''*'''
+      ResponseType: BAD_REQUEST_BODY
+      RestApiId:
+        Ref: RestApi
+      StatusCode: '400'
+  GatewayResponseUnauthorized:
+    Type: AWS::ApiGateway::GatewayResponse
+    Properties:
+      ResponseParameters:
+        gatewayresponse.header.Access-Control-Allow-Origin: '''*'''
+      ResponseType: UNAUTHORIZED
+      RestApiId:
+        Ref: RestApi
+      StatusCode: '401'
+Outputs:
+  ApiUrl:
+    Value:
+      Fn::Join:
+      - ''
+      - - https://
+        - Ref: RestApi
+        - Fn::Sub: .execute-api.${AWS::Region}.amazonaws.com/${StageName}

@@ -1,0 +1,169 @@
+swagger: '2.0'
+info:
+  title: learntechpuzz-api
+  description: learntechpuzz API
+  version: "1.0.0"
+schemes:
+  - https
+basePath: /
+produces:
+  - application/json
+paths:
+  /user:
+    post:
+      summary: Registers a new user
+      description: |
+        Creates a new user in the DynamoDB database
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      security:
+        - ApiCognitoAuthorizer: []              
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          description: Authorization header
+          type: "string"
+        - name: User
+          in: body
+          required: true
+          description: New user details
+          schema:
+            $ref: '#/definitions/User'
+      responses:
+        200:
+          description: "successful operation"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+          schema:
+            $ref: '#/definitions/ApiResponse'
+        400:
+          description: "Bad request"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+          schema:
+            $ref: '#/definitions/Error'              
+        500:
+          description: "Internal error"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+          schema:
+            $ref: '#/definitions/Error'              
+      x-amazon-apigateway-request-validator: all
+      x-amazon-apigateway-integration:
+        type: aws
+        uri: 
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateUserFunction.Arn}/invocations  
+        httpMethod: POST
+        requestTemplates:
+          application/json: |
+            {
+              "body" : $input.json('$')
+            }
+        responses:
+          "default":
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin : "'*'"
+            responseTemplates:
+              application/json:
+                schema:
+                  $ref: '#/definitions/ApiResponse'
+          "BAD.*":
+            statusCode: "400"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin : "'*'"
+          "INT.*":
+            statusCode: "500"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin : "'*'"
+    options:
+      summary: CORS support
+      description: |
+        Enable CORS by returning correct headers
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      tags:
+        - CORS
+      x-amazon-apigateway-integration:
+        type: mock
+        requestTemplates:
+          application/json: |
+            {
+              "statusCode" : 200
+            }
+        responses:
+          default:
+            statusCode: '200'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers : "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods : "'*'"
+              method.response.header.Access-Control-Allow-Origin : "'*'"
+            responseTemplates:
+              application/json: |
+                {}
+      responses:
+        200:
+          description: "Default response for CORS method"
+          headers:
+            Access-Control-Allow-Headers:
+              type: "string"
+            Access-Control-Allow-Methods:
+              type: "string"
+            Access-Control-Allow-Origin:
+              type: "string"
+definitions:
+  User:
+    type: object
+    properties:
+      username:
+        type: string
+      name:
+        type: string
+      email:
+        type: string
+      mobile:
+        type: string
+    required:
+      - username
+      - name
+      - email
+      - mobile
+  ApiResponse:
+    type: object
+    properties:
+      message:
+        type: string
+  Error:
+    properties:
+      code:
+        type: integer
+        format: int32
+      message:
+        type: string
+      fields:
+        type: string        
+securityDefinitions:
+  ApiCognitoAuthorizer:
+    type: apiKey
+    name: Authorization
+    in: header
+    x-amazon-apigateway-authtype: COGNITO_USER_POOLS
+    x-amazon-apigateway-authorizer:
+      type: COGNITO_USER_POOLS
+      providerARNs:
+        - Fn::Sub: ${UserPool.Arn}        
+x-amazon-apigateway-request-validators:
+  all:
+    validateRequestBody: true
+    validateRequestParameters: true
+  params-only:
+    validateRequestBody: false
+    validateRequestParameters: true    
