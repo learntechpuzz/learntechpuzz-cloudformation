@@ -42,14 +42,9 @@ call npm run deploy
 
 :: Replace CognitoAuthURL
 
-
-
 set search=CognitoAuthURL
 call aws cloudformation describe-stacks --stack-name %StackName% --query "Stacks[0].Outputs[?OutputKey=='CognitoAuthURL'].OutputValue" --output text > CognitoAuthURL.txt
 set /p replace=<CognitoAuthURL.txt
-
-echo %search%
-echo %replace%
 
 powershell "(Get-Content public\public.html) | Foreach-Object {$_ -replace '%search%', '%replace%'} | Set-Content public\public.html"
 
@@ -58,9 +53,6 @@ powershell "(Get-Content public\public.html) | Foreach-Object {$_ -replace '%sea
 set search=WebsiteURL
 call aws cloudformation describe-stacks --stack-name %StackName% --query "Stacks[0].Outputs[?OutputKey=='WebsiteURL'].OutputValue" --output text > WebsiteURL.txt
 set /p replace=<WebsiteURL.txt
-
-echo %search%
-echo %replace%
 
 powershell "(Get-Content public\secured.html) | Foreach-Object {$_ -replace '%search%', '%replace%'} | Set-Content public\secured.html"
 
