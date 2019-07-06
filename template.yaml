@@ -349,14 +349,6 @@ Outputs:
       - S3Bucket
       - WebsiteURL
     Description: URL for website hosted on S3
-  S3BucketSecureURL:
-    Value: !Join 
-      - ''
-      - - 'https://'
-        - !GetAtt 
-          - S3Bucket
-          - DomainName
-    Description: Name of S3 bucket to hold website content  
   APIGatewayURL:
     Value:
       Fn::Join:
@@ -365,3 +357,12 @@ Outputs:
           - Ref: RestApi
           - Fn::Sub: ".execute-api.${AWS::Region}.amazonaws.com/${StageName}"
     Description: API Gateway endpoint      
+  CognitoAuthURL:
+    Value:
+      Fn::Join:
+        - ""
+        - - "https://"
+          - Fn::Sub: "${ApplicationName}.auth.${AWS::Region}.amazoncognito.com/login?response_type=token&client_id="
+          - Ref: UserPoolClient
+          - Fn::Sub: "&redirect_uri=https://s3.amazonaws.com/${ApplicationName}/secured.html"
+    Description: Cognito Auth endpoint       

@@ -124,7 +124,7 @@ Resources:
       Runtime: nodejs8.10
       Code:
         S3Bucket: learntechpuzz-sam
-        S3Key: be607ce5b018a9f5491c91716f9e89b2
+        S3Key: c111ce4278b4e2f3edaa4d226c3065b0
       Handler: CognitoUserPoolClientSettings.handler
       Role:
         Fn::GetAtt:
@@ -138,7 +138,7 @@ Resources:
       Runtime: nodejs8.10
       Code:
         S3Bucket: learntechpuzz-sam
-        S3Key: 0705590b5bb73418e056c44ee1183d4a
+        S3Key: 8784d64fa21e93d240f11fc221a8c481
       Handler: CognitoUserPoolDomain.handler
       Role:
         Fn::GetAtt:
@@ -265,7 +265,7 @@ Resources:
       Timeout: 300
       MemorySize: 512
       Handler: com.learntechpuzz.lambda.handler.UserHandler::createUserPostConfirmation
-      CodeUri: s3://learntechpuzz-sam/0c014a347b1ca17c6de940f1937c702a
+      CodeUri: s3://learntechpuzz-sam/cfcf4f15793736468a7e384f5731758d
       Policies:
       - DynamoDBCrudPolicy:
           TableName:
@@ -296,7 +296,7 @@ Resources:
       Timeout: 300
       MemorySize: 512
       Handler: com.learntechpuzz.lambda.handler.UserHandler::createUser
-      CodeUri: s3://learntechpuzz-sam/0c014a347b1ca17c6de940f1937c702a
+      CodeUri: s3://learntechpuzz-sam/cfcf4f15793736468a7e384f5731758d
       Policies:
       - DynamoDBCrudPolicy:
           TableName:
@@ -384,15 +384,6 @@ Outputs:
       - S3Bucket
       - WebsiteURL
     Description: URL for website hosted on S3
-  S3BucketSecureURL:
-    Value:
-      Fn::Join:
-      - ''
-      - - https://
-        - Fn::GetAtt:
-          - S3Bucket
-          - DomainName
-    Description: Name of S3 bucket to hold website content
   APIGatewayURL:
     Value:
       Fn::Join:
@@ -401,3 +392,12 @@ Outputs:
         - Ref: RestApi
         - Fn::Sub: .execute-api.${AWS::Region}.amazonaws.com/${StageName}
     Description: API Gateway endpoint
+  CognitoAuthURL:
+    Value:
+      Fn::Join:
+      - ''
+      - - https://
+        - Fn::Sub: ${ApplicationName}.auth.${AWS::Region}.amazoncognito.com/login?response_type=token&client_id=
+        - Ref: UserPoolClient
+        - Fn::Sub: '&redirect_uri=https://s3.amazonaws.com/${ApplicationName}/secured.html'
+    Description: Cognito Auth endpoint
