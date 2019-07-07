@@ -34,13 +34,8 @@ call aws cloudformation deploy --template-file %OutputFile% --stack-name %StackN
 :: Build web-site
 
 cd web-site
-call npm install
-call npm run build
 
-:: Deploy web-site
-call npm run deploy
-
-:: Replace CognitoAuthURL
+:: Replace CognitoAuthURL in public.html
 
 set search=CognitoAuthURL
 call aws cloudformation describe-stacks --stack-name %StackName% --query "Stacks[0].Outputs[?OutputKey=='CognitoAuthURL'].OutputValue" --output text > CognitoAuthURL.txt
@@ -48,13 +43,26 @@ set /p replace=<CognitoAuthURL.txt
 
 powershell "(Get-Content public\public.html) | Foreach-Object {$_ -replace '%search%', '%replace%'} | Set-Content public\public.html"
 
-:: Replace WebsiteURL
+:: Replace WebsiteURL in secured.html
 
 set search=WebsiteURL
 call aws cloudformation describe-stacks --stack-name %StackName% --query "Stacks[0].Outputs[?OutputKey=='WebsiteURL'].OutputValue" --output text > WebsiteURL.txt
 set /p replace=<WebsiteURL.txt
 
 powershell "(Get-Content public\secured.html) | Foreach-Object {$_ -replace '%search%', '%replace%'} | Set-Content public\secured.html"
+
+:: Replace APIGatewayURL in axios-api.js
+
+set search=APIGatewayURL
+call aws cloudformation describe-stacks --stack-name %StackName% --query "Stacks[0].Outputs[?OutputKey=='APIGatewayURL'].OutputValue" --output text > APIGatewayURL.txt
+set /p replace=<APIGatewayURL.txt
+
+powershell "(Get-Content src\modules\common\axios\axios-api.js) | Foreach-Object {$_ -replace '%search%', '%replace%'} | Set-Content src\modules\common\axios\axios-api.js"
+
+
+call npm install
+call npm run build
+call npm run deploy
 
 :: Copy public html
 call aws s3 cp public/public.html s3://%S3BucketName%/public.html
@@ -65,3 +73,4 @@ call aws s3 cp public/secured.html s3://%S3BucketName%/secured.html
 :: Copy logo
 call aws s3 cp public/learntechpuzz_logo.png s3://%S3BucketName%/learntechpuzz_logo.png
 
+cd ..
