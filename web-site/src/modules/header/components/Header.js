@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Navbar, Nav, NavDropdown } from "react-bootstrap";
+import React, { useState, useEffect} from 'react';
+import { Navbar, Nav, NavDropdown, Button } from "react-bootstrap";
 import axios from './../../common/axios/axios-cognito'
 import logo from './../../../logo.png'
 import queryString from 'query-string'
@@ -27,7 +27,6 @@ const Header = () => {
         const auth = 'Bearer '.concat(accessToken);
         axios.get('/oauth2/userInfo', { headers: { Authorization: auth } })
             .then(response => {
-                console.log(response.data);
                 setUser(response.data.username);
             })
             .catch((error) => {
@@ -58,11 +57,11 @@ const Header = () => {
                 </Nav>
                 <Navbar.Collapse className="justify-content-center">
                     <Navbar.Text>
-                        Welcome <b>{user}</b>!
+                        Signed in as: <a href="#user">{user}</a>
                     </Navbar.Text>
                 </Navbar.Collapse>
                 <Nav>
-                    <Nav.Link href="/#logout" onClick={()=> logout}>logout</Nav.Link>
+                    <Button variant="outline-secondary" onClick={() => logout()}>logout</Button>
                 </Nav>
             </Navbar.Collapse>
         </Navbar>
