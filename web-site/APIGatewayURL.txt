@@ -1,1 +1,1 @@
-https://orpp30lqpf.execute-api.us-east-1.amazonaws.com/dev
+https://gwxrdt2nx4.execute-api.us-east-1.amazonaws.com/dev

@@ -124,7 +124,7 @@ Resources:
       Runtime: nodejs8.10
       Code:
         S3Bucket: learntechpuzz-sam
-        S3Key: 0350c50cb9716427b01df805c725a951
+        S3Key: 101190c9457a0bb38ea339d99ac0f553
       Handler: CognitoUserPoolClientSettings.handler
       Role:
         Fn::GetAtt:
@@ -138,7 +138,7 @@ Resources:
       Runtime: nodejs8.10
       Code:
         S3Bucket: learntechpuzz-sam
-        S3Key: ea4e006019e56b192da4d9210d451d11
+        S3Key: c44d2c168c3fdea16798e8bf2a180e99
       Handler: CognitoUserPoolDomain.handler
       Role:
         Fn::GetAtt:
@@ -265,7 +265,7 @@ Resources:
       Timeout: 300
       MemorySize: 512
       Handler: com.learntechpuzz.lambda.handler.UserHandler::createUserPostConfirmation
-      CodeUri: s3://learntechpuzz-sam/b0b7ed2f191b193ea3d991a0f59d2df7
+      CodeUri: s3://learntechpuzz-sam/b1d021ab595b6f3adbf9563fc0520e30
       Policies:
       - DynamoDBCrudPolicy:
           TableName:
@@ -296,7 +296,7 @@ Resources:
       Timeout: 300
       MemorySize: 512
       Handler: com.learntechpuzz.lambda.handler.UserHandler::createUser
-      CodeUri: s3://learntechpuzz-sam/b0b7ed2f191b193ea3d991a0f59d2df7
+      CodeUri: s3://learntechpuzz-sam/b1d021ab595b6f3adbf9563fc0520e30
       Policies:
       - DynamoDBCrudPolicy:
           TableName:
@@ -357,7 +357,7 @@ Resources:
       WebsiteConfiguration:
         IndexDocument: index.html
         ErrorDocument: index.html
-    DeletionPolicy: Retain
+    DeletionPolicy: Delete
   BucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
@@ -378,7 +378,7 @@ Resources:
       Bucket:
         Ref: S3Bucket
 Outputs:
-  WebsiteURL:
+  S3WebsiteURL:
     Value:
       Fn::GetAtt:
       - S3Bucket
@@ -392,7 +392,7 @@ Outputs:
         - Ref: RestApi
         - Fn::Sub: .execute-api.${AWS::Region}.amazonaws.com/${StageName}
     Description: API Gateway endpoint
-  CognitoAuthURL:
+  CognitoAuthLoginURL:
     Value:
       Fn::Join:
       - ''
@@ -400,11 +400,20 @@ Outputs:
         - Fn::Sub: ${ApplicationName}.auth.${AWS::Region}.amazoncognito.com/login?response_type=token&client_id=
         - Ref: UserPoolClient
         - Fn::Sub: '&redirect_uri=https://s3.amazonaws.com/${ApplicationName}/secured.html'
-    Description: Cognito Auth endpoint
-  CognitoAPIURL:
+    Description: Cognito Auth Login endpoint
+  CognitoAuthLogoutURL:
+    Value:
+      Fn::Join:
+      - ''
+      - - https://
+        - Fn::Sub: ${ApplicationName}.auth.${AWS::Region}.amazoncognito.com/logout?client_id=
+        - Ref: UserPoolClient
+        - Fn::Sub: '&logout_uri=https://s3.amazonaws.com/${ApplicationName}/public.html'
+    Description: Cognito Auth Logout endpoint
+  CognitoAuthAPIURL:
     Value:
       Fn::Join:
       - ''
       - - https://
         - Fn::Sub: ${ApplicationName}.auth.${AWS::Region}.amazoncognito.com
-    Description: Cognito API endpoint
+    Description: Cognito Auth API endpoint

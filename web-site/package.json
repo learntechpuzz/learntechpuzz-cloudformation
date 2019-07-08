@@ -16,7 +16,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "webpack --mode production",
+    "build": "webpack -d --mode production",
     "deploy": "aws s3 sync dist/ s3://learntechpuzz --acl public-read",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

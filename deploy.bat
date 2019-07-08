@@ -32,19 +32,19 @@ call aws cloudformation deploy --template-file %OutputFile% --stack-name %StackN
 
 cd web-site
 
-:: Replace CognitoAuthURL in public.html
+:: Replace CognitoAuthLoginURL in public.html
 
-set search=CognitoAuthURL
-call aws cloudformation describe-stacks --stack-name %StackName% --query "Stacks[0].Outputs[?OutputKey=='CognitoAuthURL'].OutputValue" --output text > CognitoAuthURL.txt
-set /p replace=<CognitoAuthURL.txt
+set search=CognitoAuthLoginURL
+call aws cloudformation describe-stacks --stack-name %StackName% --query "Stacks[0].Outputs[?OutputKey=='CognitoAuthLoginURL'].OutputValue" --output text > CognitoAuthLoginURL.txt
+set /p replace=<CognitoAuthLoginURL.txt
 
 powershell "(Get-Content public\public.html) | Foreach-Object {$_ -replace '%search%', '%replace%'} | Set-Content public\public.html"
 
-:: Replace WebsiteURL in secured.html
+:: Replace S3WebsiteURL in secured.html
 
-set search=WebsiteURL
-call aws cloudformation describe-stacks --stack-name %StackName% --query "Stacks[0].Outputs[?OutputKey=='WebsiteURL'].OutputValue" --output text > WebsiteURL.txt
-set /p replace=<WebsiteURL.txt
+set search=S3WebsiteURL
+call aws cloudformation describe-stacks --stack-name %StackName% --query "Stacks[0].Outputs[?OutputKey=='S3WebsiteURL'].OutputValue" --output text > S3WebsiteURL.txt
+set /p replace=<S3WebsiteURL.txt
 
 powershell "(Get-Content public\secured.html) | Foreach-Object {$_ -replace '%search%', '%replace%'} | Set-Content public\secured.html"
 
@@ -58,11 +58,19 @@ powershell "(Get-Content src\modules\common\axios\axios-api.js) | Foreach-Object
 
 :: Replace APIGatewayURL in axios-cognito.js
 
-set search=CognitoAPIURL
-call aws cloudformation describe-stacks --stack-name %StackName% --query "Stacks[0].Outputs[?OutputKey=='CognitoAPIURL'].OutputValue" --output text > CognitoAPIURL.txt
-set /p replace=<CognitoAPIURL.txt
+set search=CognitoAuthAPIURL
+call aws cloudformation describe-stacks --stack-name %StackName% --query "Stacks[0].Outputs[?OutputKey=='CognitoAuthAPIURL'].OutputValue" --output text > CognitoAuthAPIURL.txt
+set /p replace=<CognitoAuthAPIURL.txt
 
 powershell "(Get-Content src\modules\common\axios\axios-cognito.js) | Foreach-Object {$_ -replace '%search%', '%replace%'} | Set-Content src\modules\common\axios\axios-cognito.js"
+
+:: Replace APIGatewayURL in axios-cognito.js
+
+set search=CognitoAuthLogoutURL
+call aws cloudformation describe-stacks --stack-name %StackName% --query "Stacks[0].Outputs[?OutputKey=='CognitoAuthLogoutURL'].OutputValue" --output text > CognitoAuthLogoutURL.txt
+set /p replace=<CognitoAuthLogoutURL.txt
+
+powershell "(Get-Content src\modules\header\components\Header.js) | Foreach-Object {$_ -replace '%search%', '%replace%'} | Set-Content src\modules\header\components\Header.js"
 
 
 call npm install

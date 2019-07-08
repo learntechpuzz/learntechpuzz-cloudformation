@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Navbar, Nav, NavDropdown, Form, FormControl, Button } from "react-bootstrap";
+import { Navbar, Nav, NavDropdown } from "react-bootstrap";
 import axios from './../../common/axios/axios-cognito'
 import logo from './../../../logo.png'
 import queryString from 'query-string'
@@ -9,11 +9,20 @@ const Header = () => {
 
     const [user, setUser] = useState(null);
 
+    const logout = () => {
+        if (typeof window !== 'undefined') {
+            window.location.href = "https://learntechpuzz.auth.us-east-1.amazoncognito.com/logout?client_id=1eahvov81l07rbts4k64er6mfa&logout_uri=https://s3.amazonaws.com/learntechpuzz/public.html";
+            //window.location.href = "CognitoAuthLogout-URL";
+        }
+    }
 
     useEffect(() => {
 
         const value = queryString.parse(window.location.search);
         const accessToken = value.access_token;
+        if (accessToken == null) {
+            logout();
+        }
 
         const auth = 'Bearer '.concat(accessToken);
         axios.get('/oauth2/userInfo', { headers: { Authorization: auth } })
@@ -23,6 +32,7 @@ const Header = () => {
             })
             .catch((error) => {
                 console.log('error ' + error);
+                logout();
             });
 
     }, []);
@@ -48,13 +58,12 @@ const Header = () => {
                 </Nav>
                 <Navbar.Collapse className="justify-content-center">
                     <Navbar.Text>
-                        Welcome <a href="/#user">{user}</a>
+                        Welcome <b>{user}</b>!
                     </Navbar.Text>
                 </Navbar.Collapse>
-                <Form inline>
-                    <FormControl type="text" placeholder="Search" className="mr-sm-2" />
-                    <Button variant="outline-success">Search</Button>
-                </Form>
+                <Nav>
+                    <Nav.Link href="/#logout" onClick={()=> logout}>logout</Nav.Link>
+                </Nav>
             </Navbar.Collapse>
         </Navbar>
     );
