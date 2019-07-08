@@ -1,8 +1,32 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navbar, Nav, NavDropdown, Form, FormControl, Button } from "react-bootstrap";
+import axios from './../../common/axios/axios-cognito'
 import logo from './../../../logo.png'
+import queryString from 'query-string'
+
 
 const Header = () => {
+
+    const [user, setUser] = useState(null);
+
+
+    useEffect(() => {
+
+        const value = queryString.parse(window.location.search);
+        const accessToken = value.access_token;
+
+        const auth = 'Bearer '.concat(accessToken);
+        axios.get('/oauth2/userInfo', { headers: { Authorization: auth } })
+            .then(response => {
+                console.log(response.data);
+                setUser(response.data.username);
+            })
+            .catch((error) => {
+                console.log('error ' + error);
+            });
+
+    }, []);
+
     return (
         <Navbar fixed="top" expand="lg" variant="light" bg="light">
             <Navbar.Brand href="/">
@@ -24,7 +48,7 @@ const Header = () => {
                 </Nav>
                 <Navbar.Collapse className="justify-content-center">
                     <Navbar.Text>
-                        Welcome <a href="/#user">User!</a>
+                        Welcome <a href="/#user">{user}</a>
                     </Navbar.Text>
                 </Navbar.Collapse>
                 <Form inline>

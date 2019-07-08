@@ -324,7 +324,7 @@ Resources:
       WebsiteConfiguration:
         IndexDocument: index.html
         ErrorDocument: index.html
-    DeletionPolicy: Retain
+    DeletionPolicy: Delete
   BucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
@@ -366,3 +366,10 @@ Outputs:
           - Ref: UserPoolClient
           - Fn::Sub: "&redirect_uri=https://s3.amazonaws.com/${ApplicationName}/secured.html"
     Description: Cognito Auth endpoint       
+  CognitoAPIURL:
+    Value:
+      Fn::Join:
+        - ""
+        - - "https://"
+          - Fn::Sub: "${ApplicationName}.auth.${AWS::Region}.amazoncognito.com"
+    Description: Cognito API endpoint           

@@ -124,7 +124,7 @@ Resources:
       Runtime: nodejs8.10
       Code:
         S3Bucket: learntechpuzz-sam
-        S3Key: af1849de3df332dc2b981568d16091fc
+        S3Key: 0350c50cb9716427b01df805c725a951
       Handler: CognitoUserPoolClientSettings.handler
       Role:
         Fn::GetAtt:
@@ -138,7 +138,7 @@ Resources:
       Runtime: nodejs8.10
       Code:
         S3Bucket: learntechpuzz-sam
-        S3Key: 5ad0499122e207e6e2aeaec82d602ba0
+        S3Key: ea4e006019e56b192da4d9210d451d11
       Handler: CognitoUserPoolDomain.handler
       Role:
         Fn::GetAtt:
@@ -265,7 +265,7 @@ Resources:
       Timeout: 300
       MemorySize: 512
       Handler: com.learntechpuzz.lambda.handler.UserHandler::createUserPostConfirmation
-      CodeUri: s3://learntechpuzz-sam/e23df8d4ecf582b446587fcc8a4d9488
+      CodeUri: s3://learntechpuzz-sam/b0b7ed2f191b193ea3d991a0f59d2df7
       Policies:
       - DynamoDBCrudPolicy:
           TableName:
@@ -296,7 +296,7 @@ Resources:
       Timeout: 300
       MemorySize: 512
       Handler: com.learntechpuzz.lambda.handler.UserHandler::createUser
-      CodeUri: s3://learntechpuzz-sam/e23df8d4ecf582b446587fcc8a4d9488
+      CodeUri: s3://learntechpuzz-sam/b0b7ed2f191b193ea3d991a0f59d2df7
       Policies:
       - DynamoDBCrudPolicy:
           TableName:
@@ -401,3 +401,10 @@ Outputs:
         - Ref: UserPoolClient
         - Fn::Sub: '&redirect_uri=https://s3.amazonaws.com/${ApplicationName}/secured.html'
     Description: Cognito Auth endpoint
+  CognitoAPIURL:
+    Value:
+      Fn::Join:
+      - ''
+      - - https://
+        - Fn::Sub: ${ApplicationName}.auth.${AWS::Region}.amazoncognito.com
+    Description: Cognito API endpoint

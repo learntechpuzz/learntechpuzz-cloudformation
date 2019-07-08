@@ -16,9 +16,6 @@ cd ..
 :: Delete SAM s3 bucket 
 call aws s3 rb s3://%S3SAMBucketName% --force
 
-:: Delete s3 bucket 
-call aws s3 rb s3://%S3BucketName% --force
-
 :: Create SAM s3 bucket
 call aws s3 mb s3://%S3SAMBucketName%
 
@@ -58,6 +55,14 @@ call aws cloudformation describe-stacks --stack-name %StackName% --query "Stacks
 set /p replace=<APIGatewayURL.txt
 
 powershell "(Get-Content src\modules\common\axios\axios-api.js) | Foreach-Object {$_ -replace '%search%', '%replace%'} | Set-Content src\modules\common\axios\axios-api.js"
+
+:: Replace APIGatewayURL in axios-cognito.js
+
+set search=CognitoAPIURL
+call aws cloudformation describe-stacks --stack-name %StackName% --query "Stacks[0].Outputs[?OutputKey=='CognitoAPIURL'].OutputValue" --output text > CognitoAPIURL.txt
+set /p replace=<CognitoAPIURL.txt
+
+powershell "(Get-Content src\modules\common\axios\axios-cognito.js) | Foreach-Object {$_ -replace '%search%', '%replace%'} | Set-Content src\modules\common\axios\axios-cognito.js"
 
 
 call npm install
