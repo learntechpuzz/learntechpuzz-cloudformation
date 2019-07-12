@@ -7,16 +7,10 @@ class CourseDetailsContainer extends Component {
         super(props);
         this.state = {
             rating: 4.5,
-            numPages: null,
-            pageNumber: 1,
         }
     }
-    onDocumentLoadSuccess = ({ numPages }) => {
-        this.setState({ numPages });
-      }
     render() {
-        const { pageNumber, numPages } = this.state;
-        return (<CourseDetails rating={this.state.rating} pageNumber={pageNumber} numPages={numPages} onDocumentLoadSuccess={() => this.onDocumentLoadSuccess({numPages})} />);
+        return (<CourseDetails rating={this.state.rating}/>);
     }
 
 }
