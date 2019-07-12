@@ -27,7 +27,7 @@ const Courses = (props) => {
                                         />
                                         Loading...
                                     </Button>
-                                    : <Button variant="primary" onClick={() => props.enrollHandler(1)}>Enroll</Button>
+                                    : <Button variant="primary" onClick={() => props.enrollHandler(1)}>Get Started</Button>
 
                             }
                         </Card.Body>
@@ -53,7 +53,7 @@ const Courses = (props) => {
                                         />
                                         Loading...
                                     </Button>
-                                    : <Button variant="primary" onClick={() => props.enrollHandler(2)}>Enroll</Button>
+                                    : <Button variant="primary" onClick={() => props.enrollHandler(2)}>Get Started</Button>
 
                             }
                         </Card.Body>

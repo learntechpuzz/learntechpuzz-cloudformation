@@ -10,8 +10,10 @@
     "react": "^16.8.6",
     "react-bootstrap": "^1.0.0-beta.9",
     "react-dom": "^16.8.6",
+    "react-pdf": "^4.1.0",
     "react-router-dom": "^5.0.1",
     "react-scripts": "3.0.1",
+    "react-star-ratings": "^2.3.0",
     "s": "^0.1.1"
   },
   "scripts": {
@@ -19,7 +21,8 @@
     "build": "webpack -d --mode production",
     "deploy": "aws s3 sync dist/ s3://learntechpuzz --acl public-read",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "postinstall": "cp node_modules/pdfjs-dist/build/pdf.worker.min.js public/pdf.worker.min.js" 
   },
   "eslintConfig": {
     "extends": "react-app"

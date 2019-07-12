@@ -9,22 +9,24 @@ class HomeContainer extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            userName: null,
             loading: [],
-            id_token: null
+            id_token: null,
+            access_token: null,
         }
     }
 
-    getIdToken(){
+    getTokens(){
         const value=queryString.parse(this.props.location.search);
-        const token=value.id_token;
+        const idToken=value.id_token;
+        const accessToken=value.access_token;
         this.setState({
-            id_token: token
+            id_token: idToken,
+            access_token: accessToken,
         });
     }
 
     componentDidMount(){
-        this.getIdToken();
+        this.getTokens();
       }
 
     enrollHandler = (id) => {
@@ -35,36 +37,7 @@ class HomeContainer extends Component {
         }
         );
 
-
-        const options = {
-            headers: {
-                'Authorization': this.state.id_token,
-                'Content-Type': 'application/json;charset=UTF-8'
-            }
-        };
-
-        var postData = {
-            username: 'test1',
-            name: 'test1',
-            email: 'test1@mail.com',
-            mobile: '1'
-        }
-        axios.post('/user', postData, options)
-            .then(response => {
-                let loadingNew = this.state.loading;
-                this.setState({
-                    loading: loadingNew.filter(item => item !== id)
-                });
-                console.log(response);
-
-            })
-            .catch(error => {
-                let loadingNew = this.state.loading;
-                this.setState({
-                    loading: loadingNew.filter(item => item !== id)
-                });
-                console.log(error);
-            });
+        this.props.history.push('/course-details?id_token='+ this.state.id_token+'&access_token='+this.state.access_token);
     }
     render() {
         return (
