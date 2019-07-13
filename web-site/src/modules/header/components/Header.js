@@ -57,7 +57,7 @@ const Header = () => {
                 </Nav>
                 <Navbar.Collapse className="justify-content-center">
                     <Navbar.Text>
-                        Signed in as: <a href="#user">{user}</a>
+                        Welcome back, <a href="#user">{user}!</a>
                     </Navbar.Text>
                 </Navbar.Collapse>
                 <Nav>
