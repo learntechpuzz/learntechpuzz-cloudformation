@@ -124,7 +124,7 @@ Resources:
       Runtime: nodejs8.10
       Code:
         S3Bucket: learntechpuzz-sam
-        S3Key: 939711716c539f30a98bc57fb2685102
+        S3Key: 395684d72a6f0e776091f21a76fcc6d5
       Handler: CognitoUserPoolClientSettings.handler
       Role:
         Fn::GetAtt:
@@ -138,7 +138,7 @@ Resources:
       Runtime: nodejs8.10
       Code:
         S3Bucket: learntechpuzz-sam
-        S3Key: 2dea16606639be5671948eff6dda9f10
+        S3Key: fe5b2b06ee2cc370c937a06a37f23a75
       Handler: CognitoUserPoolDomain.handler
       Role:
         Fn::GetAtt:
@@ -155,7 +155,8 @@ Resources:
       - email
       EmailConfiguration:
         EmailSendingAccount: COGNITO_DEFAULT
-        ReplyToEmailAddress: learntechpuzz@gmail.com
+        ReplyToEmailAddress:
+          Fn::Sub: ${SourceEmail}
         SourceArn:
           Fn::Sub: arn:aws:ses:us-east-1:${AWS::AccountId}:identity/${SourceEmail}
       LambdaConfig:
@@ -265,7 +266,7 @@ Resources:
       Timeout: 300
       MemorySize: 512
       Handler: com.learntechpuzz.lambda.handler.UserHandler::createUserPostConfirmation
-      CodeUri: s3://learntechpuzz-sam/8e728464e436c3231fdbed9235b43bd9
+      CodeUri: s3://learntechpuzz-sam/c1edc00bb48d0d108f8a0a400cf57bb6
       Policies:
       - DynamoDBCrudPolicy:
           TableName:
@@ -296,7 +297,7 @@ Resources:
       Timeout: 300
       MemorySize: 512
       Handler: com.learntechpuzz.lambda.handler.UserHandler::createUser
-      CodeUri: s3://learntechpuzz-sam/8e728464e436c3231fdbed9235b43bd9
+      CodeUri: s3://learntechpuzz-sam/c1edc00bb48d0d108f8a0a400cf57bb6
       Policies:
       - DynamoDBCrudPolicy:
           TableName:
@@ -417,3 +418,11 @@ Outputs:
       - - https://
         - Fn::Sub: ${ApplicationName}.auth.${AWS::Region}.amazoncognito.com
     Description: Cognito Auth API endpoint
+  CognitoUserPoolId:
+    Value:
+      Ref: UserPool
+    Description: Cognito User Pool Id
+  CognitoAppClientId:
+    Value:
+      Ref: UserPoolClient
+    Description: Cognito App Client Id

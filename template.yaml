@@ -152,7 +152,7 @@ Resources:
         - email      
       EmailConfiguration: 
         EmailSendingAccount: COGNITO_DEFAULT
-        ReplyToEmailAddress: "learntechpuzz@gmail.com"
+        ReplyToEmailAddress: !Sub ${SourceEmail}
         SourceArn: !Sub arn:aws:ses:us-east-1:${AWS::AccountId}:identity/${SourceEmail}
       LambdaConfig:
         PostConfirmation: !GetAtt CreateUserPostConfirmationFunction.Arn     
@@ -382,3 +382,9 @@ Outputs:
         - - "https://"
           - Fn::Sub: "${ApplicationName}.auth.${AWS::Region}.amazoncognito.com"
     Description: Cognito Auth API endpoint           
+  CognitoUserPoolId:
+    Value: !Ref UserPool 
+    Description: Cognito User Pool Id
+  CognitoAppClientId:
+    Value: !Ref UserPoolClient 
+    Description: Cognito App Client Id

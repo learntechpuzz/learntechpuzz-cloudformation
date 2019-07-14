@@ -32,6 +32,16 @@ call aws cloudformation deploy --template-file %OutputFile% --stack-name %StackN
 
 cd web-site
 
+:: Set web-site logo
+
+call aws cloudformation describe-stacks --stack-name %StackName% --query "Stacks[0].Outputs[?OutputKey=='CognitoUserPoolId'].OutputValue" --output text > CognitoUserPoolId.txt
+set /p user_pool_id=<CognitoUserPoolId.txt
+
+call aws cloudformation describe-stacks --stack-name %StackName% --query "Stacks[0].Outputs[?OutputKey=='CognitoAppClientId'].OutputValue" --output text > CognitoAppClientId.txt
+set /p app_client_id=<CognitoAppClientId.txt
+
+call aws cognito-idp set-ui-customization --user-pool-id %user_pool_id% --client-id %app_client_id% --image-file --image-file fileb://./public\learntechpuzz_logo.png
+
 :: Replace CognitoAuthLoginURL in public.html
 
 set search=CognitoAuthLoginURL
