@@ -1,0 +1,33 @@
+Resources:
+	Role:
+    -
+      LambdaExecutionRole
+      CognitoAuthenticatedRole
+	UserPool:
+	UserPoolClient:
+	UserPoolClientSettings:
+	UserPoolDomain:
+	IdentityPool:
+	IdentityPoolRoleMapping:
+	Table:
+    -
+      StudentsTable
+      CoursesTable
+      CourseMaterialsTable
+	Function:
+    -
+      CognitoUserPoolSendResponseFunction
+      CognitoUserPoolClientSettingsFunction
+      CognitoUserPoolDomainFunction
+      CreateStudentPostConfirmationFunction
+      LoadDataFunction
+      GetAllCoursesFunction
+      FindCourseByIDFunction
+      FindCourseMaterialsByCourseIDFunction
+      FindCourseMaterialsByCourseIDAndTagFunction
+	Api:	
+	Bucket:
+	BucketPolicy:
+Outputs:	
+	
+	

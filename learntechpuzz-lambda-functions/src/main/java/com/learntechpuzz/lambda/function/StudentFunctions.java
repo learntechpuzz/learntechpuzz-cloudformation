@@ -19,7 +19,7 @@ public class StudentFunctions {
 
 	private static final DynamoDBMapper mapper = DynamoDBManager.mapper();
 
-	public void saveStudent(InputStream request, OutputStream response, Context context) {
+	public void createStudent(InputStream request, OutputStream response, Context context) {
 		context.getLogger().log("\nCalling saveStudent function");
 
 		JsonParser parser = new JsonParser();

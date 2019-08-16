@@ -23,43 +23,11 @@ Parameters:
     Description: Source email
 
 Resources:
-  # Create a role for authorized acces to AWS resources. Control what your user can access. This example only allows Lambda invocation
-  CognitoAuthorizedRole:
-    Type: "AWS::IAM::Role"
-    Properties:
-      AssumeRolePolicyDocument: 
-        Version: "2012-10-17"
-        Statement:
-          - Effect: "Allow"
-            Principal: 
-              Federated: "cognito-identity.amazonaws.com"
-            Action: 
-              - "sts:AssumeRoleWithWebIdentity"
-            Condition:
-              StringEquals: 
-                "cognito-identity.amazonaws.com:aud": !Ref IdentityPool
-              "ForAnyValue:StringLike":
-                "cognito-identity.amazonaws.com:amr": authenticated
-      Policies:
-        - PolicyName: "CognitoAuthorizedPolicy"
-          PolicyDocument: 
-            Version: "2012-10-17"
-            Statement: 
-              - Effect: "Allow"
-                Action:
-                  - "cognito-sync:*"
-                  - "cognito-identity:*"
-                Resource: "*"
-              - Effect: "Allow"
-                Action:
-                  - "lambda:InvokeFunction"
-                  - "execute-api:Invoke"
-                Resource: "*"  
-  # Create IAM Role for CognitoUserPoolClient and CognitoUserPoolDomain settings 
-  CognitoUserPoolClientDomainRole:
+  # LambdaExecutionRole for lambda functions to allow access Cloud Watch, UserPoolClient, UserPoolDomain, Lambda and DynamoDB 
+  LambdaExecutionRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: CognitoUserPoolClientDomainRole
+      RoleName: !Sub ${ApplicationName}-lambdaexecution-role
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -70,7 +38,7 @@ Resources:
               Service: lambda.amazonaws.com
       Policies:
         -
-          PolicyName: WriteCloudWatchLogs
+          PolicyName: !Sub ${ApplicationName}-logs-policy
           PolicyDocument: 
             Version: '2012-10-17'
             Statement: 
@@ -82,33 +50,20 @@ Resources:
                   - 'logs:PutLogEvents'
                 Resource: 'arn:aws:logs:*:*:*'
         -
-          PolicyName: UpdateUserPoolClient
+          PolicyName: !Sub ${ApplicationName}-userpool-policy
           PolicyDocument: 
             Version: '2012-10-17'
             Statement: 
               -
                 Effect: Allow
-                Action: 'cognito-idp:UpdateUserPoolClient'
+                Action:
+                  - 'cognito-idp:CreateUserPoolDomain'
+                  - 'cognito-idp:DeleteUserPoolDomain'
+                  - 'cognito-idp:DescribeUserPoolDomain'
+                  - 'cognito-idp:UpdateUserPoolClient'
                 Resource: 'arn:aws:cognito-idp:*:*:userpool/*'
         -
-          PolicyName: ManageUserPoolDomain
-          PolicyDocument: 
-            Version: '2012-10-17'
-            Statement: 
-              -
-                Effect: Allow
-                Action: 'cognito-idp:CreateUserPoolDomain'
-                Resource: 'arn:aws:cognito-idp:*:*:userpool/*'
-              -
-                Effect: Allow
-                Action: 'cognito-idp:DeleteUserPoolDomain'
-                Resource: 'arn:aws:cognito-idp:*:*:userpool/*'
-              -
-                Effect: Allow
-                Action: 'cognito-idp:DescribeUserPoolDomain'
-                Resource: '*'
-        -
-          PolicyName: InvokeLambdaFunction
+          PolicyName: !Sub ${ApplicationName}-lambda-function-policy
           PolicyDocument: 
             Version: '2012-10-17'
             Statement: 
@@ -116,37 +71,60 @@ Resources:
                 Effect: Allow
                 Action: 'lambda:InvokeFunction'
                 Resource: 'arn:aws:lambda:*:*:function:*'
-  CloudFormationSendResponse:
-    Type: 'AWS::Lambda::Function'
+        -
+          PolicyName: !Sub ${ApplicationName}-dynamodb-policy
+          PolicyDocument: 
+            Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+                - 'dynamodb:BatchGetItem'
+                - 'dynamodb:GetItem'
+                - 'dynamodb:Query'
+                - 'dynamodb:Scan'
+                - 'dynamodb:BatchWriteItem'
+                - 'dynamodb:PutItem'
+                - 'dynamodb:UpdateItem'
+              Resource: 'arn:aws:dynamodb:*:*:table/*'
+
+  # CognitoAuthenticatedRole for cognito-identity to allow access API
+  CognitoAuthenticatedRole:
+    Type: 'AWS::IAM::Role'
     Properties:
-      FunctionName: CloudFormationSendResponse
-      Runtime: nodejs8.10
-      Code: ./cognito-user-pool-client-domain/CloudFormationSendResponse
-      Handler: index.handler
-      Role: !GetAtt CognitoUserPoolClientDomainRole.Arn
-  CognitoUserPoolClientSettings:
-    Type: 'AWS::Lambda::Function'
-    Properties:
-      FunctionName: CognitoUserPoolClientSettings
-      Runtime: nodejs8.10
-      Code: ./cognito-user-pool-client-domain/CognitoUserPoolClientSettings.js
-      Handler: CognitoUserPoolClientSettings.handler
-      Role: !GetAtt CognitoUserPoolClientDomainRole.Arn
-    DependsOn: CloudFormationSendResponse
-  CognitoUserPoolDomain:
-    Type: 'AWS::Lambda::Function'
-    Properties:
-      FunctionName: CognitoUserPoolDomain
-      Runtime: nodejs8.10
-      Code: ./cognito-user-pool-client-domain/CognitoUserPoolDomain.js
-      Handler: CognitoUserPoolDomain.handler
-      Role: !GetAtt CognitoUserPoolClientDomainRole.Arn
-    DependsOn: CloudFormationSendResponse
+      RoleName: !Sub ${ApplicationName}-cognitoauthenticated-role
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: 
+              Federated: cognito-identity.amazonaws.com
+            Action: 
+              - 'sts:AssumeRoleWithWebIdentity'
+            Condition:
+              StringEquals: 
+                'cognito-identity.amazonaws.com:aud': !Ref IdentityPool
+              'ForAnyValue:StringLike':
+                'cognito-identity.amazonaws.com:amr': authenticated
+      Policies:
+        - PolicyName: !Sub ${ApplicationName}-cognito-identity-policy
+          PolicyDocument: 
+            Version: "2012-10-17"
+            Statement: 
+              - Effect: Allow
+                Action:
+                  - 'cognito-sync:*'
+                  - 'cognito-identity:*'
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - 'execute-api:Invoke'
+                Resource: '*'                
+
   # Creates a user pool in cognito for your app to auth against
   UserPool:
     Type: AWS::Cognito::UserPool
     Properties:
-      UserPoolName: !Sub ${ApplicationName}-user-pool
+      UserPoolName: !Sub ${ApplicationName}-userpool
       MfaConfiguration: "OFF"
       AutoVerifiedAttributes:
         - email      
@@ -155,7 +133,7 @@ Resources:
         ReplyToEmailAddress: !Sub ${SourceEmail}
         SourceArn: !Sub arn:aws:ses:us-east-1:${AWS::AccountId}:identity/${SourceEmail}
       LambdaConfig:
-        PostConfirmation: !GetAtt CreateUserPostConfirmationFunction.Arn     
+        PostConfirmation: !GetAtt SaveStudentPostConfirmationFunction.Arn     
       Schema:
         - Name: name
           AttributeDataType: String
@@ -169,30 +147,16 @@ Resources:
           AttributeDataType: String
           Mutable: false
           Required: true
+
   # Creates a User Pool Client to be used by the identity pool
   UserPoolClient:
     Type: AWS::Cognito::UserPoolClient
     Properties:
-      ClientName: !Sub ${ApplicationName}-client
+      ClientName: !Sub ${ApplicationName}-userpoolclient
       GenerateSecret: false
       UserPoolId: !Ref UserPool
-  # Creates a federeated Identity pool
-  IdentityPool:
-    Type: AWS::Cognito::IdentityPool
-    Properties:
-      IdentityPoolName: !Sub ${ApplicationName}Identity
-      AllowUnauthenticatedIdentities: false
-      CognitoIdentityProviders: 
-        - ClientId: !Ref UserPoolClient
-          ProviderName: !GetAtt UserPool.ProviderName
-  # Assigns the roles to the Identity Pool
-  IdentityPoolRoleMapping:
-    Type: "AWS::Cognito::IdentityPoolRoleAttachment"
-    Properties:
-      IdentityPoolId: !Ref IdentityPool
-      Roles:
-        authenticated: !GetAtt CognitoAuthorizedRole.Arn
-  # User Pool Client        
+
+  # User Pool Client settings       
   UserPoolClientSettings:
     Type: 'Custom::CognitoUserPoolClientSettings'
     Properties:
@@ -210,42 +174,39 @@ Resources:
       AllowedOAuthScopes:
         - "phone"
         - "email"
-        - "openid"
+        - "openid"        
+
+  # User Pool Domain settings       
   UserPoolDomain:
     Type: 'Custom::CognitoUserPoolDomain'
     Properties:
       ServiceToken: !GetAtt CognitoUserPoolDomain.Arn
       UserPoolId: !Ref UserPool
       Domain: !Sub ${S3BucketName}   
-  # Cognito Permission for access lambda function    
-  CognitoLambdaInvocationPermission:
-    Type: AWS::Lambda::Permission
+
+  # Creates a Federeated Identity pool
+  IdentityPool:
+    Type: AWS::Cognito::IdentityPool
     Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !GetAtt CreateUserPostConfirmationFunction.Arn
-      Principal: cognito-idp.amazonaws.com
-      SourceArn: !GetAtt UserPool.Arn          
-  # Lambda Function to add user into Dynamo DB (PostConfirmation)    
-  CreateUserPostConfirmationFunction:
-    Type: AWS::Serverless::Function
+      IdentityPoolName: !Sub ${ApplicationName}-identitypool
+      AllowUnauthenticatedIdentities: false
+      CognitoIdentityProviders: 
+        - ClientId: !Ref UserPoolClient
+          ProviderName: !GetAtt UserPool.ProviderName
+
+  # Assigns the roles to the Federeated Identity Pool
+  IdentityPoolRoleMapping:
+    Type: "AWS::Cognito::IdentityPoolRoleAttachment"
     Properties:
-      FunctionName:
-        !Sub ${ApplicationName}-create-user-post-confirmation-function
-      Runtime: java8
-      Timeout: 300
-      MemorySize: 512
-      Handler: com.learntechpuzz.lambda.function.StudentFunctions::saveStudent
-      CodeUri: ./learntechpuzz-lambda-functions/target/learntechpuzz-lambda-functions-1.0.0.jar
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref StudentTable
-      Environment:
-        Variables:
-          USER_TABLE_NAME: !Ref StudentTable
-  # DynamoDB User table      
-  StudentTable: 
+      IdentityPoolId: !Ref IdentityPool
+      Roles:
+        authenticated: !GetAtt CognitoAuthenticatedRole.Arn
+
+  # DynamoDB Students Table
+  StudentsTable: 
     Type: AWS::DynamoDB::Table
     Properties: 
+      TableName: "Students"
       AttributeDefinitions: 
         - 
           AttributeName: "UserName"
@@ -257,134 +218,88 @@ Resources:
       ProvisionedThroughput: 
         ReadCapacityUnits: "5"
         WriteCapacityUnits: "5"
-      TableName: "Students"
-  # Lambda Function to create user    
-  CreateUserFunction:
+
+  # DynamoDB Courses Table
+  CoursesTable: 
+    Type: AWS::DynamoDB::Table
+    Properties: 
+      TableName: "Courses"
+      AttributeDefinitions: 
+        - 
+          AttributeName: "CourseID"
+          AttributeType: "N"
+      KeySchema: 
+        - 
+          AttributeName: "CourseID"
+          KeyType: "HASH"
+      ProvisionedThroughput: 
+        ReadCapacityUnits: "5"
+        WriteCapacityUnits: "5"
+
+  # DynamoDB CourseMaterials Table
+  CourseMaterialsTable: 
+    Type: AWS::DynamoDB::Table
+    Properties: 
+      TableName: "CourseMaterials"
+      AttributeDefinitions: 
+        - 
+          AttributeName: "ID"
+          AttributeType: "N"
+        - 
+          AttributeName: "CourseID"
+          AttributeType: "N"
+      KeySchema: 
+        - 
+          AttributeName: "ID"
+          KeyType: "HASH"
+        - 
+          AttributeName: "CourseID"
+          KeyType: "RANGE"
+      ProvisionedThroughput: 
+        ReadCapacityUnits: "5"
+        WriteCapacityUnits: "5"
+  
+  # Lambda Function for send response from cognito user pool
+  CognitoUserPoolSendResponseFunction:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      FunctionName: !Sub ${ApplicationName}-cognitouserpoolsendresponse-function
+      Runtime: nodejs8.10
+      Code: ./cognito-user-pool-client-domain/CognitoUserPoolSendResponse
+      Handler: index.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+
+  # Lambda Function for setting cognito user pool client
+  CognitoUserPoolClientSettingsFunction:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      FunctionName: !Sub ${ApplicationName}-cognitouserpoolclientsettings-function
+      Runtime: nodejs8.10
+      Code: ./cognito-user-pool-client-domain/CognitoUserPoolClientSettings.js
+      Handler: CognitoUserPoolClientSettings.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+    DependsOn: CognitoUserPoolSendResponseFunction    
+
+  # Lambda Function for setting cognito user pool domain
+  CognitoUserPoolDomainFunction:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      FunctionName: !Sub ${ApplicationName}-cognitouserpooldomain-function
+      Runtime: nodejs8.10
+      Code: ./cognito-user-pool-client-domain/CognitoUserPoolDomain.js
+      Handler: CognitoUserPoolDomain.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+    DependsOn: CognitoUserPoolSendResponseFunction
+
+  # Lambda Function to add student into Dynamo DB (PostConfirmation trigger from Cognito)    
+  CreateStudentPostConfirmationFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName:
-        !Sub ${ApplicationName}-create-user-function
+      FunctionName: !Sub ${ApplicationName}-createstudentpostconfirmation-function
       Runtime: java8
       Timeout: 300
       MemorySize: 512
-      Handler: com.learntechpuzz.lambda.handler.UserHandler::createUser
-      CodeUri: ./lambda-functions/target/learntechpuzz-aws-lambda-0.1.0-SNAPSHOT.jar
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref StudentTable
-      Environment:
-        Variables:
-          USER_TABLE_NAME: !Ref StudentTable
-      Events:
-        UserApi:
-          Type: Api
-          Properties:
-            Path: /user
-            Method: POST
-            RestApiId:
-                Ref: RestApi              
-  # Api    
-  RestApi:
-    Type: AWS::Serverless::Api
-    Properties:
-      Name:
-        !Sub ${ApplicationName}-api
-      StageName: !Sub ${StageName}
-      DefinitionBody:
-          Fn::Transform:
-            Name: AWS::Include
-            Parameters:
-              Location:
-                Fn::Join:
-                  - ''
-                  - - 's3://'
-                    - Ref: S3SAMBucketName
-                    - '/swagger.yaml'
-  GatewayResponseBadRequestBody:
-    Type: AWS::ApiGateway::GatewayResponse
-    Properties:
-      ResponseParameters:
-        gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
-      ResponseType: BAD_REQUEST_BODY
-      RestApiId: !Ref RestApi
-      StatusCode: '400'                  
-  GatewayResponseUnauthorized:
-    Type: AWS::ApiGateway::GatewayResponse
-    Properties:
-      ResponseParameters:
-        gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
-      ResponseType: UNAUTHORIZED
-      RestApiId: !Ref RestApi
-      StatusCode: '401'  
-  S3Bucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !Sub ${S3BucketName}
-      AccessControl: PublicRead
-      WebsiteConfiguration:
-        IndexDocument: index.html
-        ErrorDocument: index.html
-    DeletionPolicy: Delete
-  BucketPolicy:
-    Type: AWS::S3::BucketPolicy
-    Properties:
-      PolicyDocument:
-        Id: S3BucketWebHostingPolicy
-        Version: 2012-10-17
-        Statement:
-          - Sid: PublicReadForGetBucketObjects
-            Effect: Allow
-            Principal: '*'
-            Action: 's3:GetObject'
-            Resource: !Join 
-              - ''
-              - - 'arn:aws:s3:::'
-                - !Ref S3Bucket
-                - /*
-      Bucket: !Ref S3Bucket                      
-# Outputs              
-Outputs:
-  S3WebsiteURL:
-    Value: !GetAtt 
-      - S3Bucket
-      - WebsiteURL
-    Description: URL for website hosted on S3
-  APIGatewayURL:
-    Value:
-      Fn::Join:
-        - ""
-        - - "https://"
-          - Ref: RestApi
-          - Fn::Sub: ".execute-api.${AWS::Region}.amazonaws.com/${StageName}"
-    Description: API Gateway endpoint      
-  CognitoAuthLoginURL:
-    Value:
-      Fn::Join:
-        - ""
-        - - "https://"
-          - Fn::Sub: "${ApplicationName}.auth.${AWS::Region}.amazoncognito.com/login?response_type=token&client_id="
-          - Ref: UserPoolClient
-          - Fn::Sub: "&redirect_uri=https://s3.amazonaws.com/${ApplicationName}/secured.html"
-    Description: Cognito Auth Login endpoint       
-  CognitoAuthLogoutURL:
-    Value:
-      Fn::Join:
-        - ""
-        - - "https://"
-          - Fn::Sub: "${ApplicationName}.auth.${AWS::Region}.amazoncognito.com/logout?client_id="
-          - Ref: UserPoolClient
-          - Fn::Sub: "&logout_uri=https://s3.amazonaws.com/${ApplicationName}/public.html"
-    Description: Cognito Auth Logout endpoint       
-  CognitoAuthAPIURL:
-    Value:
-      Fn::Join:
-        - ""
-        - - "https://"
-          - Fn::Sub: "${ApplicationName}.auth.${AWS::Region}.amazoncognito.com"
-    Description: Cognito Auth API endpoint           
-  CognitoUserPoolId:
-    Value: !Ref UserPool 
-    Description: Cognito User Pool Id
-  CognitoAppClientId:
-    Value: !Ref UserPoolClient 
-    Description: Cognito App Client Id
+      Handler: com.learntechpuzz.lambda.function.StudentFunctions::createStudent
+      CodeUri: ./learntechpuzz-lambda-functions/target/learntechpuzz-lambda-functions-1.0.0.jar
+      Role: !GetAtt LambdaExecutionRole.Arn
+
