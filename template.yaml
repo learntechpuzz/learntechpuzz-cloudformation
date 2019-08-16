@@ -234,16 +234,16 @@ Resources:
       Runtime: java8
       Timeout: 300
       MemorySize: 512
-      Handler: com.learntechpuzz.lambda.handler.UserHandler::createUserPostConfirmation
-      CodeUri: ./lambda-functions/target/learntechpuzz-aws-lambda-0.1.0-SNAPSHOT.jar
+      Handler: com.learntechpuzz.lambda.function.StudentFunctions::saveStudent
+      CodeUri: ./learntechpuzz-lambda-functions/target/learntechpuzz-lambda-functions-1.0.0.jar
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: !Ref UserTable
+            TableName: !Ref StudentTable
       Environment:
         Variables:
-          USER_TABLE_NAME: !Ref UserTable
+          USER_TABLE_NAME: !Ref StudentTable
   # DynamoDB User table      
-  UserTable: 
+  StudentTable: 
     Type: AWS::DynamoDB::Table
     Properties: 
       AttributeDefinitions: 
@@ -257,7 +257,7 @@ Resources:
       ProvisionedThroughput: 
         ReadCapacityUnits: "5"
         WriteCapacityUnits: "5"
-      TableName: "User"
+      TableName: "Students"
   # Lambda Function to create user    
   CreateUserFunction:
     Type: AWS::Serverless::Function
@@ -271,10 +271,10 @@ Resources:
       CodeUri: ./lambda-functions/target/learntechpuzz-aws-lambda-0.1.0-SNAPSHOT.jar
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: !Ref UserTable
+            TableName: !Ref StudentTable
       Environment:
         Variables:
-          USER_TABLE_NAME: !Ref UserTable
+          USER_TABLE_NAME: !Ref StudentTable
       Events:
         UserApi:
           Type: Api

@@ -24,10 +24,12 @@ const PdfViewer = (props) => {
         }
         return (
 
-            <ButtonToolbar>
-                {previousButton}
-                {nextButton}
-            </ButtonToolbar>
+            <Row>
+                <ButtonToolbar>
+                    {previousButton}
+                    {nextButton}
+                </ButtonToolbar>
+            </Row>
         );
     }
 

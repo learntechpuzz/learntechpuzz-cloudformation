@@ -1,5 +1,5 @@
 import React, { Fragment } from 'react'
-import { Row, Col, Card, Tab, Tabs, ListGroup } from 'react-bootstrap'
+import { Row, Col, Card, Tab, Tabs, ListGroup, Nav } from 'react-bootstrap'
 import StarRatings from 'react-star-ratings';
 import PdfViewer from './../../common/pdfviewer'
 const CourseDetails = (props) => {
@@ -37,6 +37,34 @@ const CourseDetails = (props) => {
                             <div>
                                 <PdfViewer file="https://learntechpuzz.s3.amazonaws.com/AWSCourseContent.pdf" />
                             </div>
+                        </Tab>
+                        <Tab eventKey="courseMaterials" title="Course Materials">
+                            <br/>
+                            <Tab.Container id="left-tabs-example" defaultActiveKey="first">
+                                <Row>
+                                    <Col sm={3}>
+                                        <Nav variant="pills" className="flex-column">
+                                            <Nav.Item>
+                                                <Nav.Link eventKey="first">Tab 1</Nav.Link>
+                                            </Nav.Item>
+                                            <Nav.Item>
+                                                <Nav.Link eventKey="second">Tab 2</Nav.Link>
+                                            </Nav.Item>
+                                        </Nav>
+                                    </Col>
+                                    <Col sm={9}>
+                                        <Tab.Content>
+                                            <Tab.Pane eventKey="first">
+                                                <div>
+                                                    <PdfViewer file="https://learntechpuzz.s3.amazonaws.com/AWSCourseContent.pdf" />
+                                                </div>
+                                            </Tab.Pane>
+                                            <Tab.Pane eventKey="second">
+                                            </Tab.Pane>
+                                        </Tab.Content>
+                                    </Col>
+                                </Row>
+                            </Tab.Container>
                         </Tab>
                         <Tab eventKey="studentFeedback" title="Student Feedback">
                             <br />

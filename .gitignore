@@ -24,8 +24,8 @@
 /web-site/yarn-debug.log*
 /web-site/yarn-error.log*
 
-# lambda-functions target
-/lambda-functions/target
-/lambda-functions/.settings
-/lambda-functions/.project
-/lambda-functions/.classpath
+# learntechpuzz-lambda-functions target
+/learntechpuzz-lambda-functions/target
+/learntechpuzz-lambda-functions/.settings
+/learntechpuzz-lambda-functions/.project
+/learntechpuzz-lambda-functions/.classpath
