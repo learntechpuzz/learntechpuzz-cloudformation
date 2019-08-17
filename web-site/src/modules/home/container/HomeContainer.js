@@ -12,22 +12,31 @@ class HomeContainer extends Component {
             loading: [],
             id_token: null,
             access_token: null,
+            courses: [],
         }
     }
 
-    getTokens(){
-        const value=queryString.parse(this.props.location.search);
-        const idToken=value.id_token;
-        const accessToken=value.access_token;
+    getTokens() {
+        const value = queryString.parse(this.props.location.search);
+        console.log(value);
+        const idToken = value.id_token;
+        console.log(idToken);
+        const accessToken = value.access_token;
         this.setState({
             id_token: idToken,
             access_token: accessToken,
         });
+        axios.get('/courses', { headers: { Authorization: idToken } })
+        .then(response => {
+            this.setState({ courses: response.data })
+        })
+        .catch(err => console.log(err))
+      
     }
 
-    componentDidMount(){
+    componentDidMount() {
         this.getTokens();
-      }
+    }
 
     enrollHandler = (id) => {
         let loadingNew = this.state.loading.slice();
@@ -37,11 +46,11 @@ class HomeContainer extends Component {
         }
         );
 
-        this.props.history.push('/course-details?id_token='+ this.state.id_token+'&access_token='+this.state.access_token);
+        this.props.history.push('/course-details?id_token=' + this.state.id_token + '&access_token=' + this.state.access_token);
     }
     render() {
         return (
-            <Courses enrollHandler={(id) => this.enrollHandler(id)} loading={this.state.loading} />
+            <Courses courses={this.state.courses} enrollHandler={(id) => this.enrollHandler(id)} loading={this.state.loading} />
         );
     }
 }

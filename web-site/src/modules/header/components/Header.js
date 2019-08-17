@@ -1,5 +1,5 @@
 import React, { useState, useEffect} from 'react';
-import { Navbar, Nav, NavDropdown, Button } from "react-bootstrap";
+import { Navbar, Nav, Button } from "react-bootstrap";
 import axios from './../../common/axios/axios-cognito'
 import logo from './../../../logo.png'
 import queryString from 'query-string'
@@ -47,14 +47,6 @@ const Header = () => {
             </Navbar.Brand>
             <Navbar.Toggle aria-controls="basic-navbar-nav" />
             <Navbar.Collapse id="basic-navbar-nav">
-                <Nav className="mr-auto">
-                    <Nav.Link href="/">Home</Nav.Link>
-                    <NavDropdown title="Action" id="basic-nav-dropdown">
-                        <NavDropdown.Item href="/#mycourses">My Courses</NavDropdown.Item>
-                        <NavDropdown.Divider />
-                        <NavDropdown.Item id="feedbackLink" href="/feedback">Feedback</NavDropdown.Item>
-                    </NavDropdown>
-                </Nav>
                 <Navbar.Collapse className="justify-content-center">
                     <Navbar.Text>
                         Welcome back, <a href="#user">{user}!</a>
