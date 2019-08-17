@@ -211,7 +211,7 @@ Resources:
     Type: AWS::Cognito::IdentityPool
     Properties:
       IdentityPoolName:
-        Fn::Sub: ${ApplicationName}-identitypool
+        Fn::Sub: ${ApplicationName}IdentityPool
       AllowUnauthenticatedIdentities: false
       CognitoIdentityProviders:
       - ClientId:
@@ -295,7 +295,7 @@ Resources:
       Runtime: nodejs8.10
       Code:
         S3Bucket: learntechpuzz-cloudformation
-        S3Key: 88d198592bdf5cda45f4954d47e36736
+        S3Key: 6349459b765f71e39348394256fa7d84
       Handler: CognitoUserPoolClientSettings.handler
       Role:
         Fn::GetAtt:
@@ -310,7 +310,7 @@ Resources:
       Runtime: nodejs8.10
       Code:
         S3Bucket: learntechpuzz-cloudformation
-        S3Key: 84f8d0ae49bd1565012d7c603448df58
+        S3Key: 34cd0ab587143ebf559eeab429b783c3
       Handler: CognitoUserPoolDomain.handler
       Role:
         Fn::GetAtt:
@@ -326,7 +326,7 @@ Resources:
       Timeout: 300
       MemorySize: 512
       Handler: com.learntechpuzz.lambda.function.StudentFunctions::createStudent
-      CodeUri: s3://learntechpuzz-cloudformation/0855110e427f59ec7c39b478e19e9112
+      CodeUri: s3://learntechpuzz-cloudformation/ed11b5e6ce9fb1963b0e7270e26ef866
       Role:
         Fn::GetAtt:
         - LambdaExecutionRole
@@ -340,7 +340,7 @@ Resources:
       Timeout: 300
       MemorySize: 512
       Handler: com.learntechpuzz.lambda.function.AppDataLoaderFunctions::loadAppData
-      CodeUri: s3://learntechpuzz-cloudformation/0855110e427f59ec7c39b478e19e9112
+      CodeUri: s3://learntechpuzz-cloudformation/ed11b5e6ce9fb1963b0e7270e26ef866
       Role:
         Fn::GetAtt:
         - LambdaExecutionRole
@@ -354,7 +354,7 @@ Resources:
       Timeout: 300
       MemorySize: 512
       Handler: com.learntechpuzz.lambda.function.CourseFunctions::getAllCourses
-      CodeUri: s3://learntechpuzz-cloudformation/0855110e427f59ec7c39b478e19e9112
+      CodeUri: s3://learntechpuzz-cloudformation/ed11b5e6ce9fb1963b0e7270e26ef866
       Role:
         Fn::GetAtt:
         - LambdaExecutionRole

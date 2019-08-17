@@ -132,6 +132,15 @@ Resources:
       Principal: cognito-idp.amazonaws.com
       SourceArn: !GetAtt UserPool.Arn          
 
+  # S3AppDataBucket permission for access lambda function LoadAppDataFunction
+  S3AppDataBucketLambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt LoadAppDataFunction.Arn
+      Principal: s3.amazonaws.com
+      SourceArn: !GetAtt S3AppDataBucket.Arn  
+
   # Creates a user pool in cognito for your app to auth against
   UserPool:
     Type: AWS::Cognito::UserPool
@@ -200,7 +209,7 @@ Resources:
   IdentityPool:
     Type: AWS::Cognito::IdentityPool
     Properties:
-      IdentityPoolName: !Sub ${ApplicationName}-identitypool
+      IdentityPoolName: !Sub ${ApplicationName}IdentityPool
       AllowUnauthenticatedIdentities: false
       CognitoIdentityProviders: 
         - ClientId: !Ref UserPoolClient
@@ -371,15 +380,6 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub ${S3AppDataBucketName}
-      #NotificationConfiguration:
-        #LambdaConfigurations:
-          #- Event: 's3:ObjectCreated:*'
-            #Function: !GetAtt LoadAppDataFunction.Arn
-            #Filter:
-              #S3Key:
-                #Rules:
-                  #- Name: suffix
-                    #Value: '.csv'
 
   # Create S3 bucket for hosting application web-site
   S3WebSiteBucket:

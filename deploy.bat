@@ -1,5 +1,5 @@
 @echo off
-set ApplicationName=learntechpuzz
+set ApplicationName=learntechpuzznew
 set StageName=dev
 set S3WebSiteBucketName=learntechpuzz
 set S3CloudFormationBucketName=learntechpuzz-cloudformation
