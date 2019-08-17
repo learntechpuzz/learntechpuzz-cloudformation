@@ -1,7 +1,7 @@
 swagger: '2.0'
 info:
   title: learntechpuzz-api
-  description: learntechpuzz API
+  description: learntechpuzz aws api specification
   version: "1.0.0"
 schemes:
   - https
@@ -9,11 +9,11 @@ basePath: /
 produces:
   - application/json
 paths:
-  /user:
-    post:
-      summary: Registers a new user
+  /courses:
+    get:
+      summary: Get all courses
       description: |
-        Creates a new user in the DynamoDB database
+        Get all courses from courses table
       consumes:
         - application/json
       produces:
@@ -26,12 +26,6 @@ paths:
           required: true
           description: Authorization header
           type: "string"
-        - name: User
-          in: body
-          required: true
-          description: New user details
-          schema:
-            $ref: '#/definitions/User'
       responses:
         200:
           description: "successful operation"
@@ -39,7 +33,7 @@ paths:
             Access-Control-Allow-Origin:
               type: "string"
           schema:
-            $ref: '#/definitions/ApiResponse'
+            $ref: '#/definitions/Courses'
         400:
           description: "Bad request"
           headers:
@@ -58,7 +52,7 @@ paths:
       x-amazon-apigateway-integration:
         type: aws
         uri: 
-          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateUserFunction.Arn}/invocations  
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetAllCoursesFunction.Arn}/invocations  
         httpMethod: POST
         requestTemplates:
           application/json: |
@@ -73,7 +67,7 @@ paths:
             responseTemplates:
               application/json:
                 schema:
-                  $ref: '#/definitions/ApiResponse'
+                  $ref: '#/definitions/Courses'
           "BAD.*":
             statusCode: "400"
             responseParameters:
@@ -120,26 +114,25 @@ paths:
             Access-Control-Allow-Origin:
               type: "string"
 definitions:
-  User:
+  Courses:
+    type: array
+    items: 
+      $ref: "#/definitions/Course"   
+  Course:
     type: object
     properties:
-      username:
+      courseId:
+        type: integer
+        format: int32
+      title:
         type: string
-      name:
+      summary:
         type: string
-      email:
+      logoFileName:
         type: string
-      mobile:
+      about:
         type: string
-    required:
-      - username
-      - name
-      - email
-      - mobile
-  ApiResponse:
-    type: object
-    properties:
-      message:
+      courseContentsFileName:
         type: string
   Error:
     properties:
@@ -148,8 +141,6 @@ definitions:
         format: int32
       message:
         type: string
-      fields:
-        type: string        
 securityDefinitions:
   ApiCognitoAuthorizer:
     type: apiKey
@@ -160,10 +151,3 @@ securityDefinitions:
       type: COGNITO_USER_POOLS
       providerARNs:
         - Fn::Sub: ${UserPool.Arn}        
-x-amazon-apigateway-request-validators:
-  all:
-    validateRequestBody: true
-    validateRequestParameters: true
-  params-only:
-    validateRequestBody: false
-    validateRequestParameters: true    

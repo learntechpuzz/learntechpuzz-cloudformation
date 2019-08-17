@@ -7,12 +7,15 @@ Parameters:
   ApplicationName:
     Type: String
     Description: Application name
-  S3BucketName:
+  S3WebSiteBucketName:
     Type: String
-    Description: Name of S3 bucket to hold website content.
-  S3SAMBucketName:
+    Description: Name of S3 bucket which holds application website content.
+  S3CloudFormationBucketName:
     Type: String
-    Description: The name of the S3 bucket in which the Swagger specification can be found.
+    Description: Name of S3 bucket which holds cloud formation template
+  S3AppDataBucketName:
+    Type: String
+    Description: Name of S3 bucket which holds application data (courses, course materials)
   StageName:
     Type: String
     Default: dev
@@ -120,6 +123,24 @@ Resources:
                   - 'execute-api:Invoke'
                 Resource: '*'                
 
+  # Cognito Permission for access lambda function CreateStudentPostConfirmationFunction  
+  CognitoLambdaInvocationPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt CreateStudentPostConfirmationFunction.Arn
+      Principal: cognito-idp.amazonaws.com
+      SourceArn: !GetAtt UserPool.Arn          
+
+  # S3AppDataBucket permission for access lambda function LoadAppDataFunction
+  S3AppDataBucketLambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt LoadAppDataFunction.Arn
+      Principal: s3.amazonaws.com
+      SourceArn: !GetAtt S3AppDataBucket.Arn  
+
   # Creates a user pool in cognito for your app to auth against
   UserPool:
     Type: AWS::Cognito::UserPool
@@ -165,8 +186,8 @@ Resources:
       UserPoolClientId: !Ref UserPoolClient
       SupportedIdentityProviders:
         - COGNITO
-      CallbackURL: !Sub https://s3.amazonaws.com/${S3BucketName}/secured.html 
-      LogoutURL: !Sub https://s3.amazonaws.com/${S3BucketName}/public.html 
+      CallbackURL: !Sub https://s3.amazonaws.com/${S3WebSiteBucketName}/secured.html 
+      LogoutURL: !Sub https://s3.amazonaws.com/${S3WebSiteBucketName}/public.html 
       AllowedOAuthFlowsUserPoolClient: true
       AllowedOAuthFlows:
         - code
@@ -182,7 +203,7 @@ Resources:
     Properties:
       ServiceToken: !GetAtt CognitoUserPoolDomain.Arn
       UserPoolId: !Ref UserPool
-      Domain: !Sub ${S3BucketName}   
+      Domain: !Sub ${S3WebSiteBucketName}   
 
   # Creates a Federeated Identity pool
   IdentityPool:
@@ -265,7 +286,7 @@ Resources:
     Properties:
       FunctionName: !Sub ${ApplicationName}-cognitouserpoolsendresponse-function
       Runtime: nodejs8.10
-      Code: ./cognito-user-pool-client-domain/CognitoUserPoolSendResponse
+      Code: ./lambda-functions/cognito-settings-lambda-functions-nodejs/CognitoUserPoolSendResponse
       Handler: index.handler
       Role: !GetAtt LambdaExecutionRole.Arn
 
@@ -275,7 +296,7 @@ Resources:
     Properties:
       FunctionName: !Sub ${ApplicationName}-cognitouserpoolclientsettings-function
       Runtime: nodejs8.10
-      Code: ./cognito-user-pool-client-domain/CognitoUserPoolClientSettings.js
+      Code: ./lambda-functions/cognito-settings-lambda-functions-nodejs/CognitoUserPoolClientSettings.js
       Handler: CognitoUserPoolClientSettings.handler
       Role: !GetAtt LambdaExecutionRole.Arn
     DependsOn: CognitoUserPoolSendResponseFunction    
@@ -286,7 +307,7 @@ Resources:
     Properties:
       FunctionName: !Sub ${ApplicationName}-cognitouserpooldomain-function
       Runtime: nodejs8.10
-      Code: ./cognito-user-pool-client-domain/CognitoUserPoolDomain.js
+      Code: ./lambda-functions/cognito-settings-lambda-functions-nodejs/CognitoUserPoolDomain.js
       Handler: CognitoUserPoolDomain.handler
       Role: !GetAtt LambdaExecutionRole.Arn
     DependsOn: CognitoUserPoolSendResponseFunction
@@ -300,6 +321,151 @@ Resources:
       Timeout: 300
       MemorySize: 512
       Handler: com.learntechpuzz.lambda.function.StudentFunctions::createStudent
-      CodeUri: ./learntechpuzz-lambda-functions/target/learntechpuzz-lambda-functions-1.0.0.jar
+      CodeUri: ./lambda-functions/app-lambda-functions-java/target/learntechpuzz-lambda-functions-1.0.0.jar
       Role: !GetAtt LambdaExecutionRole.Arn
 
+  # Lambda Function to load courses and course materials from s3 into Dynamo DB (Initial data loader)    
+  LoadAppDataFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${ApplicationName}-loadappdata-function
+      Runtime: java8
+      Timeout: 300
+      MemorySize: 512
+      Handler: com.learntechpuzz.lambda.function.AppDataLoaderFunctions::loadAppData
+      CodeUri: ./lambda-functions/app-lambda-functions-java/target/learntechpuzz-lambda-functions-1.0.0.jar
+      Role: !GetAtt LambdaExecutionRole.Arn
+
+  # Lambda Function to get all courses from Dynamodb   
+  GetAllCoursesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName:
+        !Sub ${ApplicationName}-getallcourses-function
+      Runtime: java8
+      Timeout: 300
+      MemorySize: 512
+      Handler: com.learntechpuzz.lambda.function.CourseFunctions::getAllCourses
+      CodeUri: ./lambda-functions/app-lambda-functions-java/target/learntechpuzz-lambda-functions-1.0.0.jar
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Events:
+        UserApi:
+          Type: Api
+          Properties:
+            Path: /courses
+            Method: GET
+            RestApiId:
+                Ref: RestApi       
+
+  # Api Gateway   
+  RestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name:
+        !Sub ${ApplicationName}-api
+      StageName: !Sub ${StageName}
+      DefinitionBody:
+          Fn::Transform:
+            Name: AWS::Include
+            Parameters:
+              Location:
+                Fn::Join:
+                  - ''
+                  - - 's3://'
+                    - Ref: S3CloudFormationBucketName
+                    - '/swagger.yaml'
+
+  # Create S3 bucket for application data and invoke lambda function to load data into DynamoDB on S3 objects created event
+  S3AppDataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${S3AppDataBucketName}
+      NotificationConfiguration:
+        LambdaConfigurations:
+        - Event: s3:ObjectCreated:*
+          Function:
+            Fn::GetAtt:
+            - LoadAppDataFunction
+            - Arn
+          Filter:
+            S3Key:
+              Rules:
+              - Name: suffix
+                Value: '.csv'
+
+  # Create S3 bucket for hosting application web-site
+  S3WebSiteBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${S3WebSiteBucketName}
+      AccessControl: PublicRead
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+    DeletionPolicy: Delete
+  
+  # S3 bucket policy for hosting pubilc web-site
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      PolicyDocument:
+        Id: S3BucketWebHostingPolicy
+        Version: 2012-10-17
+        Statement:
+          - Sid: PublicReadForGetBucketObjects
+            Effect: Allow
+            Principal: '*'
+            Action: 's3:GetObject'
+            Resource: !Join 
+              - ''
+              - - 'arn:aws:s3:::'
+                - !Ref S3WebSiteBucket
+                - /*
+      Bucket: !Ref S3WebSiteBucket                      
+
+# Cloud Formation Outputs              
+Outputs:
+  S3WebsiteURL:
+    Value: !GetAtt 
+      - S3WebSiteBucket
+      - WebsiteURL
+    Description: URL for website hosted on S3
+  APIGatewayURL:
+    Value:
+      Fn::Join:
+        - ""
+        - - "https://"
+          - Ref: RestApi
+          - Fn::Sub: ".execute-api.${AWS::Region}.amazonaws.com/${StageName}"
+    Description: API Gateway endpoint      
+  CognitoAuthLoginURL:
+    Value:
+      Fn::Join:
+        - ""
+        - - "https://"
+          - Fn::Sub: "${ApplicationName}.auth.${AWS::Region}.amazoncognito.com/login?response_type=token&client_id="
+          - Ref: UserPoolClient
+          - Fn::Sub: "&redirect_uri=https://s3.amazonaws.com/${ApplicationName}/secured.html"
+    Description: Cognito Auth Login endpoint       
+  CognitoAuthLogoutURL:
+    Value:
+      Fn::Join:
+        - ""
+        - - "https://"
+          - Fn::Sub: "${ApplicationName}.auth.${AWS::Region}.amazoncognito.com/logout?client_id="
+          - Ref: UserPoolClient
+          - Fn::Sub: "&logout_uri=https://s3.amazonaws.com/${ApplicationName}/public.html"
+    Description: Cognito Auth Logout endpoint       
+  CognitoAuthAPIURL:
+    Value:
+      Fn::Join:
+        - ""
+        - - "https://"
+          - Fn::Sub: "${ApplicationName}.auth.${AWS::Region}.amazoncognito.com"
+    Description: Cognito Auth API endpoint           
+  CognitoUserPoolId:
+    Value: !Ref UserPool 
+    Description: Cognito User Pool Id
+  CognitoAppClientId:
+    Value: !Ref UserPoolClient 
+    Description: Cognito App Client Id

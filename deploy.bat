@@ -1,38 +1,39 @@
 @echo off
 set ApplicationName=learntechpuzz
 set StageName=dev
-set S3BucketName=learntechpuzz
-set S3SAMBucketName=learntechpuzz-sam
+set S3WebSiteBucketName=learntechpuzz
+set S3CloudFormationBucketName=learntechpuzz-cloudformation
+set S3AppDataBucketName=learntechpuzz-data
 set InputFile=template.yaml
 set OutputFile=template-output.yaml
 set StackName=%ApplicationName%
 set SourceEmail=learntechpuzz@gmail.com
 
-:: Build Java application - Lambda Functions using maven
-cd lambda-functions
+:: Build app-lambda-functions-java
+cd lambda-functions\app-lambda-functions-java
 call mvn clean package
-cd ..
+cd ..\..\
 
-:: Delete SAM s3 bucket 
-call aws s3 rb s3://%S3SAMBucketName% --force
+:: Delete S3 CloudFormation Bucket
+call aws s3 rb s3://%S3CloudFormationBucketName% --force
 
-:: Create SAM s3 bucket
-call aws s3 mb s3://%S3SAMBucketName%
+:: Create S3 CloudFormation Bucket
+call aws s3 mb s3://%S3CloudFormationBucketName%
 
-:: Copy swagger.yaml into SAM s3 bucket
-call aws s3 cp swagger.yaml s3://%S3SAMBucketName%/swagger.yaml
+:: Copy swagger.yaml into S3 CloudFormation Bucket
+call aws s3 cp swagger.yaml s3://%S3CloudFormationBucketName%/swagger.yaml
 
-:: Package SAM
-call aws cloudformation package --template-file %InputFile% --output-template-file %OutputFile% --s3-bucket %S3SAMBucketName%
+:: Package cloud formation template
+call aws cloudformation package --template-file %InputFile% --output-template-file %OutputFile% --s3-bucket %S3CloudFormationBucketName%
 
-:: Deploy SAM
-call aws cloudformation deploy --template-file %OutputFile% --stack-name %StackName% --parameter-overrides ApplicationName=%ApplicationName% StageName=%StageName% S3BucketName=%S3BucketName% S3SAMBucketName=%S3SAMBucketName% SourceEmail=%SourceEmail% --capabilities CAPABILITY_NAMED_IAM
+:: Deploy cloud formation template
+call aws cloudformation deploy --template-file %OutputFile% --stack-name %StackName% --parameter-overrides ApplicationName=%ApplicationName% StageName=%StageName% S3WebSiteBucketName=%S3WebSiteBucketName% S3CloudFormationBucketName=%S3CloudFormationBucketName% S3AppDataBucketName=%S3AppDataBucketName% SourceEmail=%SourceEmail% --capabilities CAPABILITY_NAMED_IAM
 
-:: Build web-site
+:: Build application web-site
 
 cd web-site
 
-:: Set web-site logo
+:: Configure application web-site logo
 
 call aws cloudformation describe-stacks --stack-name %StackName% --query "Stacks[0].Outputs[?OutputKey=='CognitoUserPoolId'].OutputValue" --output text > CognitoUserPoolId.txt
 set /p user_pool_id=<CognitoUserPoolId.txt
@@ -88,12 +89,12 @@ call npm run build
 call npm run deploy
 
 :: Copy public html
-call aws s3 cp public/public.html s3://%S3BucketName%/public.html
+call aws s3 cp public/public.html s3://%S3WebSiteBucketName%/public.html
 
 :: Copy secured html
-call aws s3 cp public/secured.html s3://%S3BucketName%/secured.html
+call aws s3 cp public/secured.html s3://%S3WebSiteBucketName%/secured.html
 
 :: Copy logo
-call aws s3 cp public/learntechpuzz_logo.png s3://%S3BucketName%/learntechpuzz_logo.png
+call aws s3 cp public/learntechpuzz_logo.png s3://%S3WebSiteBucketName%/learntechpuzz_logo.png
 
 cd ..

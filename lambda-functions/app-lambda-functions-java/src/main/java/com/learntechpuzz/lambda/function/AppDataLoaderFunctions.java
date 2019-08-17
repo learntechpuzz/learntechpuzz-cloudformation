@@ -20,11 +20,11 @@ import com.learntechpuzz.lambda.model.CsvCourseMaterial;
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
 
-public class DataLoaderFunctions implements RequestHandler<S3Event, String> {
+public class AppDataLoaderFunctions implements RequestHandler<S3Event, String> {
 	private AmazonS3 s3 = AmazonS3ClientBuilder.standard().build();
 	private static final DynamoDBMapper mapper = DynamoDBManager.mapper();
 
-	public String loadData(S3Event event, Context context) {
+	public String loadAppData(S3Event event, Context context) {
 		context.getLogger().log("Received event: " + event);
 
 		String bucket = event.getRecords().get(0).getS3().getBucket().getName();

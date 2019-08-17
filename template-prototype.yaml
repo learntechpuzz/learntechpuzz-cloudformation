@@ -3,6 +3,10 @@ Resources:
     -
       LambdaExecutionRole
       CognitoAuthenticatedRole
+  Permission:
+    -
+      CognitoLambdaInvocationPermission
+      S3AppDataBucketLambdaInvokePermission        
 	UserPool:
 	UserPoolClient:
 	UserPoolClientSettings:
@@ -20,13 +24,17 @@ Resources:
       CognitoUserPoolClientSettingsFunction
       CognitoUserPoolDomainFunction
       CreateStudentPostConfirmationFunction
-      LoadDataFunction
+      LoadAppDataFunction
       GetAllCoursesFunction
       FindCourseByIDFunction
       FindCourseMaterialsByCourseIDFunction
       FindCourseMaterialsByCourseIDAndTagFunction
 	Api:	
+    RestApi
 	Bucket:
+    -
+      S3AppDataBucket
+      S3WebSiteBucket
 	BucketPolicy:
 Outputs:	
 	

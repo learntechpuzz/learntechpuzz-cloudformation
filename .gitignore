@@ -25,7 +25,7 @@
 /web-site/yarn-error.log*
 
 # learntechpuzz-lambda-functions target
-/learntechpuzz-lambda-functions/target
-/learntechpuzz-lambda-functions/.settings
-/learntechpuzz-lambda-functions/.project
-/learntechpuzz-lambda-functions/.classpath
+/lambda-functions/app-lambda-functions-java/target
+/lambda-functions/app-lambda-functions-java/.settings
+/lambda-functions/app-lambda-functions-java/.project
+/lambda-functions/app-lambda-functions-java/.classpath
