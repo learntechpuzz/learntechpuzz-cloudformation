@@ -11,7 +11,7 @@ const Header = () => {
 
     const logout = () => {
         if (typeof window !== 'undefined') {
-            window.location.href = "https://learntechpuzz.auth.us-east-1.amazoncognito.com/logout?client_id=1eahvov81l07rbts4k64er6mfa&logout_uri=https://s3.amazonaws.com/learntechpuzz/public.html";
+              window.location.href = "https://learntechpuzz.auth.us-east-1.amazoncognito.com/logout?client_id=g46di8amduap21mnp3hoss7m3&logout_uri=https://s3.amazonaws.com/learntechpuzz/public.html"
             //window.location.href = "CognitoAuthLogout-URL";
         }
     }

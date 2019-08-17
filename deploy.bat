@@ -41,7 +41,7 @@ set /p user_pool_id=<CognitoUserPoolId.txt
 call aws cloudformation describe-stacks --stack-name %StackName% --query "Stacks[0].Outputs[?OutputKey=='CognitoAppClientId'].OutputValue" --output text > CognitoAppClientId.txt
 set /p app_client_id=<CognitoAppClientId.txt
 
-call aws cognito-idp set-ui-customization --user-pool-id %user_pool_id% --client-id %app_client_id% --image-file --image-file fileb://./public\learntechpuzz_logo.png
+call aws cognito-idp set-ui-customization --user-pool-id %user_pool_id% --client-id %app_client_id% --image-file fileb://./public\learntechpuzz_logo.png
 
 :: Replace CognitoAuthLoginURL in public.html
 
@@ -75,7 +75,7 @@ set /p replace=<CognitoAuthAPIURL.txt
 
 powershell "(Get-Content src\modules\common\axios\axios-cognito.js) | Foreach-Object {$_ -replace '%search%', '%replace%'} | Set-Content src\modules\common\axios\axios-cognito.js"
 
-:: Replace APIGatewayURL in axios-cognito.js
+:: Replace APIGatewayURL in Header.js
 
 set search=CognitoAuthLogoutURL
 call aws cloudformation describe-stacks --stack-name %StackName% --query "Stacks[0].Outputs[?OutputKey=='CognitoAuthLogoutURL'].OutputValue" --output text > CognitoAuthLogoutURL.txt
