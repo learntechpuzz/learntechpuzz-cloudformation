@@ -132,15 +132,6 @@ Resources:
       Principal: cognito-idp.amazonaws.com
       SourceArn: !GetAtt UserPool.Arn          
 
-  # S3AppDataBucket permission for access lambda function LoadAppDataFunction
-  S3AppDataBucketLambdaInvokePermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !GetAtt LoadAppDataFunction.Arn
-      Principal: s3.amazonaws.com
-      SourceArn: !GetAtt S3AppDataBucket.Arn  
-
   # Creates a user pool in cognito for your app to auth against
   UserPool:
     Type: AWS::Cognito::UserPool
@@ -154,7 +145,7 @@ Resources:
         ReplyToEmailAddress: !Sub ${SourceEmail}
         SourceArn: !Sub arn:aws:ses:us-east-1:${AWS::AccountId}:identity/${SourceEmail}
       LambdaConfig:
-        PostConfirmation: !GetAtt SaveStudentPostConfirmationFunction.Arn     
+        PostConfirmation: !GetAtt CreateStudentPostConfirmationFunction.Arn     
       Schema:
         - Name: name
           AttributeDataType: String
@@ -181,7 +172,7 @@ Resources:
   UserPoolClientSettings:
     Type: 'Custom::CognitoUserPoolClientSettings'
     Properties:
-      ServiceToken: !GetAtt CognitoUserPoolClientSettings.Arn
+      ServiceToken: !GetAtt CognitoUserPoolClientSettingsFunction.Arn
       UserPoolId: !Ref UserPool
       UserPoolClientId: !Ref UserPoolClient
       SupportedIdentityProviders:
@@ -201,7 +192,7 @@ Resources:
   UserPoolDomain:
     Type: 'Custom::CognitoUserPoolDomain'
     Properties:
-      ServiceToken: !GetAtt CognitoUserPoolDomain.Arn
+      ServiceToken: !GetAtt CognitoUserPoolDomainFunction.Arn
       UserPoolId: !Ref UserPool
       Domain: !Sub ${S3WebSiteBucketName}   
 
@@ -209,7 +200,7 @@ Resources:
   IdentityPool:
     Type: AWS::Cognito::IdentityPool
     Properties:
-      IdentityPoolName: !Sub ${ApplicationName}-identitypool
+      IdentityPoolName: !Sub ${ApplicationName}IdentityPool
       AllowUnauthenticatedIdentities: false
       CognitoIdentityProviders: 
         - ClientId: !Ref UserPoolClient
@@ -380,18 +371,20 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub ${S3AppDataBucketName}
+
+  S3AppDataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${S3AppDataBucketName}
       NotificationConfiguration:
         LambdaConfigurations:
-        - Event: s3:ObjectCreated:*
-          Function:
-            Fn::GetAtt:
-            - LoadAppDataFunction
-            - Arn
-          Filter:
-            S3Key:
-              Rules:
-              - Name: suffix
-                Value: '.csv'
+          - Event: 's3:ObjectCreated:*'
+            Function: !GetAtt LoadAppDataFunction.Arn
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: suffix
+                    Value: '.csv'
 
   # Create S3 bucket for hosting application web-site
   S3WebSiteBucket:
