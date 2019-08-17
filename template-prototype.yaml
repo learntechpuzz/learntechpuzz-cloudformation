@@ -20,7 +20,7 @@ Resources:
       CourseMaterialsTable
 	Function:
     -
-      CognitoUserPoolSendResponseFunction
+      CloudFormationSendResponse
       CognitoUserPoolClientSettingsFunction
       CognitoUserPoolDomainFunction
       CreateStudentPostConfirmationFunction

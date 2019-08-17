@@ -84,6 +84,17 @@ Resources:
             - dynamodb:PutItem
             - dynamodb:UpdateItem
             Resource: arn:aws:dynamodb:*:*:table/*
+      - PolicyName:
+          Fn::Sub: ${ApplicationName}-s3readonly-policy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - s3:Get*
+            - s3:List*
+            Resource:
+              Fn::Sub: arn:aws:s3:::${S3AppDataBucketName}/*
   CognitoAuthenticatedRole:
     Type: AWS::IAM::Role
     Properties:
@@ -130,6 +141,19 @@ Resources:
       SourceArn:
         Fn::GetAtt:
         - UserPool
+        - Arn
+  S3AppDataBucketLambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - LoadAppDataFunction
+        - Arn
+      Principal: s3.amazonaws.com
+      SourceArn:
+        Fn::GetAtt:
+        - S3AppDataBucket
         - Arn
   UserPool:
     Type: AWS::Cognito::UserPool
@@ -273,15 +297,14 @@ Resources:
       ProvisionedThroughput:
         ReadCapacityUnits: '5'
         WriteCapacityUnits: '5'
-  CognitoUserPoolSendResponseFunction:
+  CloudFormationSendResponseFunction:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName:
-        Fn::Sub: ${ApplicationName}-cognitouserpoolsendresponse-function
+      FunctionName: CloudFormationSendResponse
       Runtime: nodejs8.10
       Code:
         S3Bucket: learntechpuzz-cloudformation
-        S3Key: 4a4d8ddcd5ff8d57db21a8903eec8853
+        S3Key: fe3097851761c9fbd4d3014b3871da14
       Handler: index.handler
       Role:
         Fn::GetAtt:
@@ -295,13 +318,13 @@ Resources:
       Runtime: nodejs8.10
       Code:
         S3Bucket: learntechpuzz-cloudformation
-        S3Key: 6349459b765f71e39348394256fa7d84
+        S3Key: 89a0f43e8423a5032e1fb011039bca42
       Handler: CognitoUserPoolClientSettings.handler
       Role:
         Fn::GetAtt:
         - LambdaExecutionRole
         - Arn
-    DependsOn: CognitoUserPoolSendResponseFunction
+    DependsOn: CloudFormationSendResponseFunction
   CognitoUserPoolDomainFunction:
     Type: AWS::Lambda::Function
     Properties:
@@ -310,13 +333,13 @@ Resources:
       Runtime: nodejs8.10
       Code:
         S3Bucket: learntechpuzz-cloudformation
-        S3Key: 34cd0ab587143ebf559eeab429b783c3
+        S3Key: 702fb2dcad5c1f6cb1198dc8e43f2be2
       Handler: CognitoUserPoolDomain.handler
       Role:
         Fn::GetAtt:
         - LambdaExecutionRole
         - Arn
-    DependsOn: CognitoUserPoolSendResponseFunction
+    DependsOn: CloudFormationSendResponseFunction
   CreateStudentPostConfirmationFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -326,7 +349,7 @@ Resources:
       Timeout: 300
       MemorySize: 512
       Handler: com.learntechpuzz.lambda.function.StudentFunctions::createStudent
-      CodeUri: s3://learntechpuzz-cloudformation/ed11b5e6ce9fb1963b0e7270e26ef866
+      CodeUri: s3://learntechpuzz-cloudformation/2403592860291cb8159a3799fec1ff9b
       Role:
         Fn::GetAtt:
         - LambdaExecutionRole
@@ -340,7 +363,7 @@ Resources:
       Timeout: 300
       MemorySize: 512
       Handler: com.learntechpuzz.lambda.function.AppDataLoaderFunctions::loadAppData
-      CodeUri: s3://learntechpuzz-cloudformation/ed11b5e6ce9fb1963b0e7270e26ef866
+      CodeUri: s3://learntechpuzz-cloudformation/2403592860291cb8159a3799fec1ff9b
       Role:
         Fn::GetAtt:
         - LambdaExecutionRole
@@ -354,7 +377,7 @@ Resources:
       Timeout: 300
       MemorySize: 512
       Handler: com.learntechpuzz.lambda.function.CourseFunctions::getAllCourses
-      CodeUri: s3://learntechpuzz-cloudformation/ed11b5e6ce9fb1963b0e7270e26ef866
+      CodeUri: s3://learntechpuzz-cloudformation/2403592860291cb8159a3799fec1ff9b
       Role:
         Fn::GetAtt:
         - LambdaExecutionRole
@@ -389,6 +412,18 @@ Resources:
     Properties:
       BucketName:
         Fn::Sub: ${S3AppDataBucketName}
+      NotificationConfiguration:
+        LambdaConfigurations:
+        - Event: s3:ObjectCreated:*
+          Function:
+            Fn::GetAtt:
+            - LoadAppDataFunction
+            - Arn
+          Filter:
+            S3Key:
+              Rules:
+              - Name: suffix
+                Value: .csv
   S3WebSiteBucket:
     Type: AWS::S3::Bucket
     Properties:

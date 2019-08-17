@@ -1,1 +1,1 @@
-
+https://learntechpuzz.auth.us-east-1.amazoncognito.com/login?response_type=token&client_id=g46di8amduap21mnp3hoss7m3&redirect_uri=https://s3.amazonaws.com/learntechpuzz/secured.html

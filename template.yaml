@@ -89,6 +89,17 @@ Resources:
                 - 'dynamodb:PutItem'
                 - 'dynamodb:UpdateItem'
               Resource: 'arn:aws:dynamodb:*:*:table/*'
+        -
+          PolicyName: !Sub ${ApplicationName}-s3readonly-policy
+          PolicyDocument: 
+            Version: '2012-10-17'
+            Statement: 
+              -
+                Effect: Allow
+                Action: 
+                  - 's3:Get*'
+                  - 's3:List*'
+                Resource: !Sub arn:aws:s3:::${S3AppDataBucketName}/*
 
   # CognitoAuthenticatedRole for cognito-identity to allow access API
   CognitoAuthenticatedRole:
@@ -281,12 +292,12 @@ Resources:
         WriteCapacityUnits: "5"
   
   # Lambda Function for send response from cognito user pool
-  CognitoUserPoolSendResponseFunction:
+  CloudFormationSendResponseFunction:
     Type: 'AWS::Lambda::Function'
     Properties:
-      FunctionName: !Sub ${ApplicationName}-cognitouserpoolsendresponse-function
+      FunctionName: CloudFormationSendResponse
       Runtime: nodejs8.10
-      Code: ./lambda-functions/cognito-settings-lambda-functions-nodejs/CognitoUserPoolSendResponse
+      Code: ./lambda-functions/cognito-settings-lambda-functions-nodejs/CloudFormationSendResponse
       Handler: index.handler
       Role: !GetAtt LambdaExecutionRole.Arn
 
@@ -299,7 +310,7 @@ Resources:
       Code: ./lambda-functions/cognito-settings-lambda-functions-nodejs/CognitoUserPoolClientSettings.js
       Handler: CognitoUserPoolClientSettings.handler
       Role: !GetAtt LambdaExecutionRole.Arn
-    DependsOn: CognitoUserPoolSendResponseFunction    
+    DependsOn: CloudFormationSendResponseFunction    
 
   # Lambda Function for setting cognito user pool domain
   CognitoUserPoolDomainFunction:
@@ -310,7 +321,7 @@ Resources:
       Code: ./lambda-functions/cognito-settings-lambda-functions-nodejs/CognitoUserPoolDomain.js
       Handler: CognitoUserPoolDomain.handler
       Role: !GetAtt LambdaExecutionRole.Arn
-    DependsOn: CognitoUserPoolSendResponseFunction
+    DependsOn: CloudFormationSendResponseFunction
 
   # Lambda Function to add student into Dynamo DB (PostConfirmation trigger from Cognito)    
   CreateStudentPostConfirmationFunction:
@@ -380,6 +391,15 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub ${S3AppDataBucketName}
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: 's3:ObjectCreated:*'
+            Function: !GetAtt LoadAppDataFunction.Arn
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: suffix
+                    Value: '.csv'      
 
   # Create S3 bucket for hosting application web-site
   S3WebSiteBucket:
