@@ -41,6 +41,16 @@ public class StudentFunctions {
 			System.err.println("saveStudent failed.");
 			System.err.println(e.getMessage());
 		}
+		
+		String output = getGson().toJson(inputObj);
+		context.getLogger().log("\noutput: " + output);
+
+		try {
+			IOUtils.write(output, response, "UTF-8");
+		} catch (final IOException e) {
+			System.err.println("Error while writing response");
+			System.err.println(e.getMessage());
+		}		
 
 	}
 
