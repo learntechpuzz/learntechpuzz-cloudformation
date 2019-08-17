@@ -200,7 +200,7 @@ Resources:
   IdentityPool:
     Type: AWS::Cognito::IdentityPool
     Properties:
-      IdentityPoolName: !Sub ${ApplicationName}IdentityPool
+      IdentityPoolName: !Sub ${ApplicationName}-identitypool
       AllowUnauthenticatedIdentities: false
       CognitoIdentityProviders: 
         - ClientId: !Ref UserPoolClient
@@ -371,20 +371,15 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub ${S3AppDataBucketName}
-
-  S3AppDataBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !Sub ${S3AppDataBucketName}
-      NotificationConfiguration:
-        LambdaConfigurations:
-          - Event: 's3:ObjectCreated:*'
-            Function: !GetAtt LoadAppDataFunction.Arn
-            Filter:
-              S3Key:
-                Rules:
-                  - Name: suffix
-                    Value: '.csv'
+      #NotificationConfiguration:
+        #LambdaConfigurations:
+          #- Event: 's3:ObjectCreated:*'
+            #Function: !GetAtt LoadAppDataFunction.Arn
+            #Filter:
+              #S3Key:
+                #Rules:
+                  #- Name: suffix
+                    #Value: '.csv'
 
   # Create S3 bucket for hosting application web-site
   S3WebSiteBucket:
