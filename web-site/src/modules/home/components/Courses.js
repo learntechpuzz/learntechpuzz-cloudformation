@@ -28,7 +28,7 @@ const Courses = (props) => {
                                                 />
                                                 Loading...
                                     </Button>
-                                            : <Button variant="primary" onClick={() => props.enrollHandler(idx)}>Get Started</Button>
+                                            : <Button variant="primary" onClick={() => props.viewCourseDetails(idx, course.courseId)}>Get Started</Button>
 
                                     }
                                 </Card.Body>

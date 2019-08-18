@@ -1,4 +1,4 @@
-import React, { useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navbar, Nav, Button } from "react-bootstrap";
 import axios from './../../common/axios/axios-cognito'
 import logo from './../../../logo.png'
@@ -8,10 +8,11 @@ import queryString from 'query-string'
 const Header = () => {
 
     const [user, setUser] = useState(null);
-
+    const [token, setToken] = useState(null);
+    
     const logout = () => {
         if (typeof window !== 'undefined') {
-              window.location.href = "https://learntechpuzz.auth.us-east-1.amazoncognito.com/logout?client_id=g46di8amduap21mnp3hoss7m3&logout_uri=https://s3.amazonaws.com/learntechpuzz/public.html"
+            window.location.href = "https://learntechpuzz.auth.us-east-1.amazoncognito.com/logout?client_id=g46di8amduap21mnp3hoss7m3&logout_uri=https://s3.amazonaws.com/learntechpuzz/public.html"
             //window.location.href = "CognitoAuthLogout-URL";
         }
     }
@@ -20,6 +21,8 @@ const Header = () => {
 
         const value = queryString.parse(window.location.search);
         const accessToken = value.access_token;
+        const idToken = value.id_token;
+        setToken('?id_token=' + idToken + '&access_token=' + accessToken);
         if (accessToken == null) {
             logout();
         }
@@ -47,6 +50,9 @@ const Header = () => {
             </Navbar.Brand>
             <Navbar.Toggle aria-controls="basic-navbar-nav" />
             <Navbar.Collapse id="basic-navbar-nav">
+                <Nav className="mr-auto">
+                    <Nav.Link href={`/${token}`}>Home</Nav.Link>
+                </Nav>
                 <Navbar.Collapse className="justify-content-center">
                     <Navbar.Text>
                         Welcome back, <a href="#user">{user}!</a>
