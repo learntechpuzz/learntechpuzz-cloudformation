@@ -17,6 +17,8 @@ import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.learntechpuzz.lambda.dynamodb.DynamoDBManager;
 import com.learntechpuzz.lambda.model.Course;
 import com.learntechpuzz.lambda.model.CourseMaterial;
@@ -34,39 +36,76 @@ public class CourseFunctions {
 
 	public void findCourseByID(InputStream request, OutputStream response, Context context) {
 		context.getLogger().log("\nCalling findCourseByID function");
-		int courseId = 1;
-		Course course = mapper.load(Course.class, courseId);
-		context.getLogger().log("\ncourse:" + course);
-		output(Optional.ofNullable(course), response, context);
+		JsonParser parser = new JsonParser();
+		JsonObject inputObj = null;
+		try {
+			inputObj = parser.parse(IOUtils.toString(request, "UTF-8")).getAsJsonObject();
+			context.getLogger().log("\ninputObj: " + inputObj);
+			int courseId = inputObj.get("courseId").getAsInt();
+			context.getLogger().log("\ncourseId:" + courseId);
+			Course course = mapper.load(Course.class, courseId);
+			context.getLogger().log("\ncourse:" + course);
+			output(Optional.ofNullable(course), response, context);
+
+		} catch (Exception e) {
+			System.err.println("saveStudent failed.");
+			System.err.println(e.getMessage());
+		}
+
 	}
 
 	public void findCourseMaterialsByCourseID(InputStream request, OutputStream response, Context context) {
 		context.getLogger().log("\nCalling findCourseMaterialsByCourseID function");
-		String courseId = "1";
-		Map<String, AttributeValue> eav = new HashMap<>();
-		eav.put(":courseId", new AttributeValue().withN(courseId));
+		JsonParser parser = new JsonParser();
+		JsonObject inputObj = null;
+		try {
+			inputObj = parser.parse(IOUtils.toString(request, "UTF-8")).getAsJsonObject();
+			context.getLogger().log("\ninputObj: " + inputObj);
+			String courseId = inputObj.get("courseId").getAsString();
+			Map<String, AttributeValue> eav = new HashMap<>();
+			eav.put(":courseId", new AttributeValue().withN(courseId));
+			DynamoDBScanExpression scanExpression = new DynamoDBScanExpression()
+					.withFilterExpression("CourseID = :courseId").withExpressionAttributeValues(eav);
+			List<CourseMaterial> courseMaterials = mapper.scan(CourseMaterial.class, scanExpression);
+			List<CourseMaterial> sortedCourseMaterials = new LinkedList<>();
+			sortedCourseMaterials.addAll(courseMaterials);
+			sortedCourseMaterials.sort((e1, e2) -> e1.getId() <= e2.getId() ? -1 : 1);
+			context.getLogger().log("\nsortedCourseMaterials: " + sortedCourseMaterials);
+			output(sortedCourseMaterials, response, context);
 
-		DynamoDBScanExpression scanExpression = new DynamoDBScanExpression()
-				.withFilterExpression("CourseID = :courseId").withExpressionAttributeValues(eav);
-		List<CourseMaterial> courseMaterials = mapper.scan(CourseMaterial.class, scanExpression);
-        List<CourseMaterial> sortedCourseMaterials = new LinkedList<>();
-        sortedCourseMaterials.addAll(courseMaterials);
-        sortedCourseMaterials.sort( (e1, e2) -> e1.getId() <= e2.getId() ? -1 : 1 );
-		output(sortedCourseMaterials, response, context);
+		} catch (Exception e) {
+			System.err.println("saveStudent failed.");
+			System.err.println(e.getMessage());
+		}
+
 	}
 
 	public void findCourseMaterialsByCourseIDAndTag(InputStream request, OutputStream response, Context context) {
 		context.getLogger().log("\nCalling findCourseMaterialsByCourseIDAndTag function");
-		String courseId = "1";
-		String tag = "EC2";
-		Map<String, AttributeValue> eav = new HashMap<>();
-		eav.put(":courseId", new AttributeValue().withN(courseId));
-		eav.put(":tag", new AttributeValue().withS(tag));
 
-		DynamoDBScanExpression scanExpression = new DynamoDBScanExpression()
-				.withFilterExpression("CourseID = :courseId and contains(Tag, :tag)").withExpressionAttributeValues(eav);
-		List<CourseMaterial> courseMaterials = mapper.scan(CourseMaterial.class, scanExpression);
-		output(courseMaterials, response, context);
+		JsonParser parser = new JsonParser();
+		JsonObject inputObj = null;
+		try {
+			inputObj = parser.parse(IOUtils.toString(request, "UTF-8")).getAsJsonObject();
+			context.getLogger().log("\ninputObj: " + inputObj);
+			String courseId = inputObj.get("body").getAsJsonObject().get("courseId").getAsString();
+			String tag = inputObj.get("body").getAsJsonObject().get("tag").getAsString();
+			Map<String, AttributeValue> eav = new HashMap<>();
+			eav.put(":courseId", new AttributeValue().withN(courseId));
+			eav.put(":tag", new AttributeValue().withS(tag));
+
+			DynamoDBScanExpression scanExpression = new DynamoDBScanExpression()
+					.withFilterExpression("CourseID = :courseId and contains(Tag, :tag)")
+					.withExpressionAttributeValues(eav);
+			List<CourseMaterial> courseMaterials = mapper.scan(CourseMaterial.class, scanExpression);
+			context.getLogger().log("\ncourseMaterials: " + courseMaterials);
+			output(courseMaterials, response, context);
+
+		} catch (Exception e) {
+			System.err.println("saveStudent failed.");
+			System.err.println(e.getMessage());
+		}
+
 	}
 
 	protected Gson getGson() {

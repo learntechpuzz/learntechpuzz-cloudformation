@@ -368,6 +368,69 @@ Resources:
             RestApiId:
                 Ref: RestApi       
 
+  # Lambda Function to find course by course id   
+  FindCourseByIDFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName:
+        !Sub ${ApplicationName}-findcoursebyid-function
+      Runtime: java8
+      Timeout: 300
+      MemorySize: 512
+      Handler: com.learntechpuzz.lambda.function.CourseFunctions::findCourseByID
+      CodeUri: ./lambda-functions/app-lambda-functions-java/target/learntechpuzz-lambda-functions-1.0.0.jar
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Events:
+        UserApi:
+          Type: Api
+          Properties:
+            Path: /courses/{courseId}
+            Method: GET
+            RestApiId:
+                Ref: RestApi       
+
+  # Lambda Function to find course materials by course id   
+  FindCourseMaterialsByCourseIDFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName:
+        !Sub ${ApplicationName}-findcoursematerialsbycourseid-function
+      Runtime: java8
+      Timeout: 300
+      MemorySize: 512
+      Handler: com.learntechpuzz.lambda.function.CourseFunctions::findCourseMaterialsByCourseID
+      CodeUri: ./lambda-functions/app-lambda-functions-java/target/learntechpuzz-lambda-functions-1.0.0.jar
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Events:
+        UserApi:
+          Type: Api
+          Properties:
+            Path: /coursematerials/{courseId}
+            Method: GET
+            RestApiId:
+                Ref: RestApi       
+
+  # Lambda Function to find course materials by course id and tag 
+  FindCourseMaterialsByCourseIDAndTagFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName:
+        !Sub ${ApplicationName}-findcoursematerialsbycourseidandtag-function
+      Runtime: java8
+      Timeout: 300
+      MemorySize: 512
+      Handler: com.learntechpuzz.lambda.function.CourseFunctions::findCourseMaterialsByCourseIDAndTag
+      CodeUri: ./lambda-functions/app-lambda-functions-java/target/learntechpuzz-lambda-functions-1.0.0.jar
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Events:
+        UserApi:
+          Type: Api
+          Properties:
+            Path: /coursematerials
+            Method: POST
+            RestApiId:
+                Ref: RestApi       
+
   # Api Gateway   
   RestApi:
     Type: AWS::Serverless::Api
