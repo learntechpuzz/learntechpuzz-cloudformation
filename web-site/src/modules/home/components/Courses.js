@@ -1,6 +1,5 @@
 import React, { Fragment } from 'react'
 import { Card, Button, Row, Col, Spinner } from 'react-bootstrap'
-import AWSCloudLogo from './../AWSCloud.png'
 
 const Courses = (props) => {
     return (
@@ -10,7 +9,7 @@ const Courses = (props) => {
                     return (
                         <Col key={idx}>
                             <Card style={{ width: '18rem' }}>
-                                <Card.Img variant="top" src={AWSCloudLogo} />
+                                <Card.Img variant="top" src={course.logoFileName} />
                                 <Card.Body>
                                     <Card.Title>{course.title}</Card.Title>
                                     <Card.Text>
