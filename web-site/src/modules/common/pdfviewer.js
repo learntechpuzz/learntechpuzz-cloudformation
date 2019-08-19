@@ -38,6 +38,7 @@ const PdfViewer = (props) => {
 
     const [loading, numPages] = usePdf({
         file: props.file,
+        scale: 1.3,
         onDocumentComplete,
         page,
         canvasEl
