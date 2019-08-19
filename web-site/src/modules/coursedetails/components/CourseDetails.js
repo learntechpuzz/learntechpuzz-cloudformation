@@ -2,9 +2,12 @@ import React, { Fragment } from 'react'
 import { Row, Col, Card, Tab, Tabs, Nav } from 'react-bootstrap'
 import StarRatings from 'react-star-ratings';
 import PdfViewer from './../../common/pdfviewer'
+import LoadingSpinner from './../../common/spinner/loadingspinner';
+
 const CourseDetails = (props) => {
     return (
         <Fragment>
+            {props.loading ? <LoadingSpinner /> : null}
             {
                 props.course != null ?
                     <Row>
@@ -30,7 +33,7 @@ const CourseDetails = (props) => {
                             <Tabs defaultActiveKey="overview" id="uncontrolled-tab-example">
                                 <Tab eventKey="overview" title="What you'll learn">
                                     <br />
-                                    {props.course.about}
+                                    <div dangerouslySetInnerHTML={{ __html: props.course.about }} />
                                 </Tab>
                                 <Tab eventKey="courseContents" title="Course Contents">
                                     <PdfViewer file={props.course.courseContentsFileName} />
@@ -39,9 +42,9 @@ const CourseDetails = (props) => {
                                     <br />
                                     {
                                         props.courseMaterials != null ?
-                                            <Tab.Container id="left-tabs-example" defaultActiveKey="first">
+                                            <Tab.Container id="left-tabs-example" defaultActiveKey="0">
                                                 <Row>
-                                                    <Col sm={4}>
+                                                    <Col sm={3}>
                                                         <Nav variant="pills" className="flex-column">
                                                             {props.courseMaterials.map((courseMaterial, idx) => {
                                                                 return (
@@ -53,12 +56,12 @@ const CourseDetails = (props) => {
                                                             })}
                                                         </Nav>
                                                     </Col>
-                                                    <Col sm={6}>
+                                                    <Col sm={9}>
                                                         <Tab.Content>
                                                             {props.courseMaterials.map((courseMaterial, idx) => {
                                                                 return (
                                                                     <Tab.Pane eventKey={idx}>
-                                                                        <PdfViewer file={courseMaterial.fileName} /> 
+                                                                        <PdfViewer file={courseMaterial.fileName} />
                                                                     </Tab.Pane>
                                                                 )
                                                             })}

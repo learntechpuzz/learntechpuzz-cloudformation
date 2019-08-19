@@ -5,12 +5,13 @@ import axios from './../../common/axios/axios-api'
 import withErrorHandler from './../../common/withErrorHandler/withErrorHandler'
 import queryString from 'query-string'
 
+
 class HomeContainer extends Component {
 
     constructor(props) {
         super(props);
         this.state = {
-            loading: [],
+            loading: false,
             id_token: null,
             access_token: null,
             courses: [],
@@ -25,30 +26,28 @@ class HomeContainer extends Component {
             id_token: idToken,
             access_token: accessToken,
         });
-        axios.get('/courses', { headers: { Authorization: idToken } })
-            .then(response => {
-                this.setState({ courses: response.data })
-            })
-            .catch(err => console.log(err))
+        this.setState({ loading: true }, () => {
+            axios.get('/courses', { headers: { Authorization: idToken } })
+                .then(response => {
+
+                    this.setState({ loading: false, courses: response.data })
+                })
+                .catch(err => console.log(err))
+        });
     }
+
 
     componentDidMount() {
         this.getAllCourses();
     }
 
-    viewCourseDetails = (id, courseId) => {
-        let loadingNew = this.state.loading.slice();
-        loadingNew.push(id)
-        this.setState({
-            loading: loadingNew
-        }
-        );
+    viewCourseDetails = (courseId) => {
 
-        this.props.history.push('/course-details?courseId='+ courseId +'&id_token=' + this.state.id_token + '&access_token=' + this.state.access_token);
+        this.props.history.push('/course-details?courseId=' + courseId + '&id_token=' + this.state.id_token + '&access_token=' + this.state.access_token);
     }
     render() {
         return (
-            <Courses courses={this.state.courses} viewCourseDetails={(id, courseId) => this.viewCourseDetails(id, courseId)} loading={this.state.loading} />
+            <Courses courses={this.state.courses} viewCourseDetails={(courseId) => this.viewCourseDetails(courseId)} loading={this.state.loading} />
         );
     }
 }

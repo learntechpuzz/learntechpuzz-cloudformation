@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { usePdf } from 'react-pdf-js';
-import { Spinner, Row, ButtonToolbar, Button } from "react-bootstrap";
+import { Row, Col, ButtonToolbar, Button } from "react-bootstrap";
+import LoadingSpinner from './../common/spinner/loadingspinner';
 
 const PdfViewer = (props) => {
     const [page, setPage] = useState(1);
@@ -47,11 +48,19 @@ const PdfViewer = (props) => {
     }, [numPages]);
 
     return (
-        <Row className="justify-content-md-center">
-            {loading && <Spinner animation="grow" />}
-            <canvas ref={canvasEl} />
-            {renderPagination(page, pages)}
-        </Row>
+        <div>
+            {loading && <LoadingSpinner />}
+            <Row className="justify-content-md-center">
+                <Col>
+                    {renderPagination(page, pages)}
+                </Col>
+            </Row>
+            <Row className="justify-content-md-center">
+                <Col>
+                    <canvas ref={canvasEl} />
+                </Col>
+            </Row>
+        </div>
     );
 }
 

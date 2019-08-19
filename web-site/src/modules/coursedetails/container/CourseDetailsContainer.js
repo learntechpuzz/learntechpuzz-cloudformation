@@ -10,6 +10,7 @@ class CourseDetailsContainer extends Component {
     constructor(props) {
         super(props);
         this.state = {
+            loading: false,
             rating: 4.5,
             id_token: null,
             access_token: null,
@@ -29,26 +30,27 @@ class CourseDetailsContainer extends Component {
             access_token: accessToken,
         });
 
-        axios.get('/courses/' + courseId, { headers: { Authorization: idToken } })
-            .then(response => {
-                this.setState({ course: response.data.value })
-            })
-            .catch(err => console.log(err))
+        this.setState({ loading: true }, () => {
+            axios.get('/courses/' + courseId, { headers: { Authorization: idToken } })
+                .then(response => {
+                    this.setState({ loading: false, course: response.data.value })
+                })
+                .catch(err => console.log(err))
 
-        axios.get('/coursematerials/' + courseId, { headers: { Authorization: idToken } })
-            .then(response => {
-                this.setState({ courseMaterials: response.data })
-            })
-            .catch(err => console.log(err))
-            
-        }
+            axios.get('/coursematerials/' + courseId, { headers: { Authorization: idToken } })
+                .then(response => {
+                    this.setState({ loading: false, courseMaterials: response.data })
+                })
+                .catch(err => console.log(err))
+        });
+    }
 
     componentDidMount() {
         this.getCourseDetails();
     }
-   
+
     render() {
-        return (<CourseDetails courseMaterials = {this.state.courseMaterials} course={this.state.course} rating={this.state.rating}/>);
+        return (<CourseDetails courseMaterials={this.state.courseMaterials} course={this.state.course} rating={this.state.rating} loading={this.state.loading} />);
     }
 
 }

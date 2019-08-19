@@ -1,10 +1,12 @@
 import React, { Fragment } from 'react'
-import { Card, Button, Row, Col, Spinner } from 'react-bootstrap'
+import { Card, Button, Row, Col } from 'react-bootstrap'
+import LoadingSpinner from './../../common/spinner/loadingspinner';
 
 const Courses = (props) => {
     return (
         <Fragment>
             <Row>
+                {props.loading ? <LoadingSpinner /> : null }
                 {props.courses.map((course, idx) => {
                     return (
                         <Col key={idx}>
@@ -15,21 +17,7 @@ const Courses = (props) => {
                                     <Card.Text>
                                         {course.summary}
                                     </Card.Text>
-                                    {
-                                        props.loading.includes(idx) ?
-                                            <Button variant="primary" disabled>
-                                                <Spinner
-                                                    as="span"
-                                                    animation="grow"
-                                                    size="sm"
-                                                    role="status"
-                                                    aria-hidden="true"
-                                                />
-                                                Loading...
-                                    </Button>
-                                            : <Button variant="primary" onClick={() => props.viewCourseDetails(idx, course.courseId)}>Get Started</Button>
-
-                                    }
+                                    <Button variant="primary" onClick={() => props.viewCourseDetails(course.courseId)}>Get Started</Button>
                                 </Card.Body>
                             </Card>
 
