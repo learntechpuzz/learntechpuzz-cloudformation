@@ -1,5 +1,10 @@
 CourseID,Title,Summary,Logo_FileName,About,CourseContents_FileName
-1,Ultimate AWS Certified Solutions Architect Associate,Complete AWS Certified Solutions Architect Associate Training,AWSCloud.png,"Pass the AWS Certified Solutions Architect Associate Certification. 
-Perform Real-World Solution Architecture on AWS.
-Learn AWS Fundamentals (EC2, ELB, ASG, RDS, ElastiCache, S3).
-Learn Serverless Fundamentals (Lambda, DynamoDB, Cognito, API Gateway)",AWSCourseContents.pdf
+1,Ultimate AWS Certified Solutions Architect Associate,Complete AWS Certified Solutions Architect Associate Training,https://s3.amazonaws.com/learntechpuzz.docs/AWSCloud.png,"Pass the AWS Certified Solutions Architect Associate Certification. <br/>
+Perform Real-World Solution Architecture on AWS. <br/>
+Learn AWS Fundamentals (EC2, ELB, ASG, RDS, S3). <br/>
+Learn Serverless Fundamentals (Lambda, DynamoDB, Cognito, API Gateway).",https://s3.amazonaws.com/learntechpuzz.docs/AWSCourseContent.pdf
+2,"DevOps Complete: Docker with Kubernetes, Jenkins Code Pipeline GIT","DevOps Certification Training : Docker & Docker Swarm with Kubernetes",https://s3.amazonaws.com/learntechpuzz.docs/DevOps.png,"Apply DevOps in your team <br/>
+Automate the Software Development Lifecycle (SDLC). <br/>
+Understand Continuous Delivery. <br/>
+Deploy microservices using Docker and Kubernetes. <br/>
+Automate using Ansible and Chef",https://s3.amazonaws.com/learntechpuzz.docs/DevOpsCourseContent.pdf

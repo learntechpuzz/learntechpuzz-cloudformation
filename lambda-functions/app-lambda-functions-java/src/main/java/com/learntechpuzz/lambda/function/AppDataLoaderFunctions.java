@@ -17,6 +17,8 @@ import com.learntechpuzz.lambda.model.Course;
 import com.learntechpuzz.lambda.model.CourseMaterial;
 import com.learntechpuzz.lambda.model.CsvCourse;
 import com.learntechpuzz.lambda.model.CsvCourseMaterial;
+import com.learntechpuzz.lambda.model.CsvStudentFeedback;
+import com.learntechpuzz.lambda.model.StudentFeedback;
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
 
@@ -65,6 +67,21 @@ public class AppDataLoaderFunctions implements RequestHandler<S3Event, String> {
 			}
 		}
 
+		if (key.equalsIgnoreCase("StudentFeedbacks.csv")) {
+			CsvToBean<CsvStudentFeedback> studentFeedbacksBean = new CsvToBeanBuilder<CsvStudentFeedback>(br)
+					.withType(CsvStudentFeedback.class).withIgnoreLeadingWhiteSpace(true).build();
+
+			Iterator<CsvStudentFeedback> studentFeedbacks = studentFeedbacksBean.iterator();
+
+			while (studentFeedbacks.hasNext()) {
+				CsvStudentFeedback studentFeedback = studentFeedbacks.next();
+				context.getLogger().log(studentFeedbacks.toString());
+				saveStudentFeedbacks(studentFeedback.getId(), studentFeedback.getCourseId(), studentFeedback.getStudentName(),
+						studentFeedback.getComments());
+
+			}
+		}
+		
 		return result;
 
 	}
@@ -79,6 +96,16 @@ public class AppDataLoaderFunctions implements RequestHandler<S3Event, String> {
 		}
 	}
 
+	private void saveStudentFeedbacks(int id, int courseId, String studentName, String comments) {
+		try {
+			mapper.save(new StudentFeedback(id, courseId, studentName, comments));
+		} catch (Exception e) {
+			System.err.println("saveStudentFeedbacks failed.");
+			System.err.println(e.getMessage());
+
+		}
+	}
+	
 	private void saveCourses(int courseId, String title, String summary, String logoFileName, String about,
 			String courseContentsFileName) {
 		try {

@@ -16,6 +16,7 @@ class CourseDetailsContainer extends Component {
             access_token: null,
             course: null,
             courseMaterials: null,
+            studentFeedbacks: null,
         }
     }
 
@@ -42,6 +43,13 @@ class CourseDetailsContainer extends Component {
                     this.setState({ loading: false, courseMaterials: response.data })
                 })
                 .catch(err => console.log(err))
+
+            axios.get('/studentfeedbacks/' + courseId, { headers: { Authorization: idToken } })
+                .then(response => {
+                    this.setState({ loading: false, studentFeedbacks: response.data })
+                })
+                .catch(err => console.log(err))
+
         });
     }
 
@@ -50,7 +58,7 @@ class CourseDetailsContainer extends Component {
     }
 
     render() {
-        return (<CourseDetails courseMaterials={this.state.courseMaterials} course={this.state.course} rating={this.state.rating} loading={this.state.loading} />);
+        return (<CourseDetails studentFeedbacks={this.state.studentFeedbacks} courseMaterials={this.state.courseMaterials} course={this.state.course} rating={this.state.rating} loading={this.state.loading} />);
     }
 
 }

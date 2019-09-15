@@ -1,12 +1,19 @@
 ID,CourseID,Tag,FileName
-1,1,Linux basic commands,Linux_Basic_Commands.pdf
-2,1,AWS IAM create admin user,AWS_IAM_CreateAdminUser.pdf
-3,1,AWS IAM create s3 read only user,AWS_IAM_CreateS3User.pdf
-4,1,AWS EC2 launch ubuntu machine,AWS_EC2_Launch_Ubuntu.pdf
-5,1,AWS EC2 install apache2,AWS_EC2_Install_Apache2.pdf
-6,1,AWS EC2 install apache2 using user data,AWS_EC2_Install_Apache2_User_Data.pdf
-7,1,AWS EC2 create AMI image,AWS_EC2_Create_Image.pdf
-8,1,AWS S3 static website hosting,AWS_S3_Website.pdf
-9,1,AWS Lambda Function ,AWS_Lambda_Function.pdf
-10,1,AWS Dynamo DB,AWS_Dynamo_DB.pdf
-11,1,AWS VPC,AWS_VPC.pdf
+1,1,What is AWS?,https://s3.amazonaws.com/learntechpuzz.docs/AWSAbout.pdf
+2,1,Linux basic commands,https://s3.amazonaws.com/learntechpuzz.docs/LinuxBasicCommands.pdf
+3,1,AWS IAM create admin user,https://s3.amazonaws.com/learntechpuzz.docs/AWS_IAM_CreateAdminUser.pdf
+4,1,AWS IAM create s3 read only user,https://s3.amazonaws.com/learntechpuzz.docs/AWS_IAM_CreateS3User.pdf
+5,1,AWS EC2 launch ubuntu machine,https://s3.amazonaws.com/learntechpuzz.docs/AWS_EC2_Launch_Ubuntu.pdf
+6,1,AWS EC2 install apache2,https://s3.amazonaws.com/learntechpuzz.docs/AWS_EC2_Install_Apache2.pdf
+7,1,AWS EC2 install apache2 using user data,https://s3.amazonaws.com/learntechpuzz.docs/AWS_EC2_Install_Apache2_User_Data.pdf
+8,1,AWS EC2 create AMI image,https://s3.amazonaws.com/learntechpuzz.docs/AWS_EC2_Create_Image.pdf
+9,1,AWS S3 static website hosting,https://s3.amazonaws.com/learntechpuzz.docs/AWS_S3_Website.pdf
+10,1,AWS Lambda Function,https://s3.amazonaws.com/learntechpuzz.docs/AWS_Lambda_Function.pdf
+11,1,AWS Dynamo DB,https://s3.amazonaws.com/learntechpuzz.docs/AWS_Dynamo_DB.pdf
+12,1,AWS VPC,https://s3.amazonaws.com/learntechpuzz.docs/AWS_VPC.pdf
+13,1,AWS EFS,https://s3.amazonaws.com/learntechpuzz.docs/AWS_EFS.pdf
+14,1,AWS ELB,https://s3.amazonaws.com/learntechpuzz.docs/AWS_ELB.pdf
+15,2,DevOps Overview,https://s3.amazonaws.com/learntechpuzz.docs/DevOps_Overview.pdf
+16,2,DevOps - Git,https://s3.amazonaws.com/learntechpuzz.docs/DevOps_Git.pdf
+17,2,DevOps - Jenkins,https://s3.amazonaws.com/learntechpuzz.docs/DevOps_Jenkins.pdf
+18,2,DevOps - Docker,https://s3.amazonaws.com/learntechpuzz.docs/DevOps_Docker.pdf

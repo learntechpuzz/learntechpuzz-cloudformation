@@ -46,6 +46,7 @@ const Header = () => {
                     alt="learntechpuzz"
                     src={logo}
                     className="d-inline-block align-top"
+                    height="35"
                 />
             </Navbar.Brand>
             <Navbar.Toggle aria-controls="basic-navbar-nav" />

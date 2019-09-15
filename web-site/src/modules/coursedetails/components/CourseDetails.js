@@ -75,44 +75,28 @@ const CourseDetails = (props) => {
                                 </Tab>
                                 <Tab eventKey="studentFeedback" title="Student Feedback">
                                     <br />
-                                    <Row>
-                                        <Card style={{ width: '60rem' }}>
-                                            <Card.Body>
-                                                <Card.Title>Prasanna</Card.Title>
-                                                <StarRatings
-                                                    rating={props.rating}
-                                                    starDimension="20px"
-                                                    starSpacing="5px"
-                                                    starRatedColor="gold"
-                                                    numberOfStars={5}
-                                                    name='rating'
-                                                />
-                                                <Card.Text>
-                                                    First of all I thanks for your wonderful guidance and support for this entire course journey.I am confirming that my AWS course got completed successfully on 31st July 2019 at Besant Technologies institute under your training and you have covered all the topics
-                                    </Card.Text>
-                                            </Card.Body>
-                                        </Card>
-                                    </Row>
-                                    <br />
-                                    <Row>
-                                        <Card style={{ width: '60rem' }}>
-                                            <Card.Body>
-                                                <Card.Title>Ramji</Card.Title>
-                                                <StarRatings
-                                                    rating={props.rating}
-                                                    starDimension="20px"
-                                                    starSpacing="5px"
-                                                    starRatedColor="gold"
-                                                    numberOfStars={5}
-                                                    name='rating'
-                                                />
-                                                <Card.Text>
-                                                    First of all I thank you for the training given to us on AWS, the session was very useful from the beginning till last day of the course and you were very helpful and flexible in all aspect throughout the training. Thank you once again.
-                                    </Card.Text>
-                                            </Card.Body>
-                                        </Card>
-                                    </Row>
-
+                                    {props.studentFeedbacks.map((studentFeedback, idx) => {
+                                        return (
+                                            <Row key={idx}>
+                                                <Card style={{ width: '60rem' }}>
+                                                    <Card.Body>
+                                                        <Card.Title>{studentFeedback.studentName}</Card.Title>
+                                                        <StarRatings
+                                                            rating={props.rating}
+                                                            starDimension="20px"
+                                                            starSpacing="5px"
+                                                            starRatedColor="gold"
+                                                            numberOfStars={5}
+                                                            name='rating'
+                                                        />
+                                                        <Card.Text>
+                                                        {studentFeedback.comments}
+                                                        </Card.Text>
+                                                    </Card.Body>
+                                                </Card>
+                                            </Row>
+                                        )
+                                    })}
                                 </Tab>
                             </Tabs>
                         </Col>

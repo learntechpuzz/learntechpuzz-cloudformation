@@ -290,7 +290,30 @@ Resources:
       ProvisionedThroughput: 
         ReadCapacityUnits: "5"
         WriteCapacityUnits: "5"
-  
+
+  # DynamoDB StudentFeedbacks Table
+  StudentFeedbacksTable: 
+    Type: AWS::DynamoDB::Table
+    Properties: 
+      TableName: "StudentFeedbacks"
+      AttributeDefinitions: 
+        - 
+          AttributeName: "ID"
+          AttributeType: "N"
+        - 
+          AttributeName: "CourseID"
+          AttributeType: "N"
+      KeySchema: 
+        - 
+          AttributeName: "ID"
+          KeyType: "HASH"
+        - 
+          AttributeName: "CourseID"
+          KeyType: "RANGE"
+      ProvisionedThroughput: 
+        ReadCapacityUnits: "5"
+        WriteCapacityUnits: "5"
+
   # Lambda Function for send response from cognito user pool
   CloudFormationSendResponseFunction:
     Type: 'AWS::Lambda::Function'
@@ -406,6 +429,27 @@ Resources:
           Type: Api
           Properties:
             Path: /coursematerials/{courseId}
+            Method: GET
+            RestApiId:
+                Ref: RestApi       
+
+  # Lambda Function to find student feedbacks by course id   
+  FindStudentFeedbacksByCourseIDFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName:
+        !Sub ${ApplicationName}-findstudentfeedbacksbycourseid-function
+      Runtime: java8
+      Timeout: 300
+      MemorySize: 512
+      Handler: com.learntechpuzz.lambda.function.StudentFunctions::findStudentFeedbacksByCourseID
+      CodeUri: ./lambda-functions/app-lambda-functions-java/target/learntechpuzz-lambda-functions-1.0.0.jar
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Events:
+        UserApi:
+          Type: Api
+          Properties:
+            Path: /studentfeedbacks/{courseId}
             Method: GET
             RestApiId:
                 Ref: RestApi       

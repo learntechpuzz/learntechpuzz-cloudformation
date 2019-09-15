@@ -297,6 +297,23 @@ Resources:
       ProvisionedThroughput:
         ReadCapacityUnits: '5'
         WriteCapacityUnits: '5'
+  StudentFeedbacksTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: StudentFeedbacks
+      AttributeDefinitions:
+      - AttributeName: ID
+        AttributeType: N
+      - AttributeName: CourseID
+        AttributeType: N
+      KeySchema:
+      - AttributeName: ID
+        KeyType: HASH
+      - AttributeName: CourseID
+        KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: '5'
+        WriteCapacityUnits: '5'
   CloudFormationSendResponseFunction:
     Type: AWS::Lambda::Function
     Properties:
@@ -318,7 +335,7 @@ Resources:
       Runtime: nodejs8.10
       Code:
         S3Bucket: learntechpuzz-cloudformation
-        S3Key: 0b4eb938818eeaf9df27e87836d26050
+        S3Key: e80df5a015919d8b0288fc74cf200094
       Handler: CognitoUserPoolClientSettings.handler
       Role:
         Fn::GetAtt:
@@ -333,7 +350,7 @@ Resources:
       Runtime: nodejs8.10
       Code:
         S3Bucket: learntechpuzz-cloudformation
-        S3Key: f07ffeaf18148ec6dac54ab55dfd4511
+        S3Key: 04b51bcaae3b17ebb87db31ad8223d9a
       Handler: CognitoUserPoolDomain.handler
       Role:
         Fn::GetAtt:
@@ -349,7 +366,7 @@ Resources:
       Timeout: 300
       MemorySize: 512
       Handler: com.learntechpuzz.lambda.function.StudentFunctions::createStudent
-      CodeUri: s3://learntechpuzz-cloudformation/8e53f51b2a268fc6be51b3201a0c6c39
+      CodeUri: s3://learntechpuzz-cloudformation/496f305c6c727b8abbcea4b60f187a9e
       Role:
         Fn::GetAtt:
         - LambdaExecutionRole
@@ -363,7 +380,7 @@ Resources:
       Timeout: 300
       MemorySize: 512
       Handler: com.learntechpuzz.lambda.function.AppDataLoaderFunctions::loadAppData
-      CodeUri: s3://learntechpuzz-cloudformation/8e53f51b2a268fc6be51b3201a0c6c39
+      CodeUri: s3://learntechpuzz-cloudformation/496f305c6c727b8abbcea4b60f187a9e
       Role:
         Fn::GetAtt:
         - LambdaExecutionRole
@@ -377,7 +394,7 @@ Resources:
       Timeout: 300
       MemorySize: 512
       Handler: com.learntechpuzz.lambda.function.CourseFunctions::getAllCourses
-      CodeUri: s3://learntechpuzz-cloudformation/8e53f51b2a268fc6be51b3201a0c6c39
+      CodeUri: s3://learntechpuzz-cloudformation/496f305c6c727b8abbcea4b60f187a9e
       Role:
         Fn::GetAtt:
         - LambdaExecutionRole
@@ -399,7 +416,7 @@ Resources:
       Timeout: 300
       MemorySize: 512
       Handler: com.learntechpuzz.lambda.function.CourseFunctions::findCourseByID
-      CodeUri: s3://learntechpuzz-cloudformation/8e53f51b2a268fc6be51b3201a0c6c39
+      CodeUri: s3://learntechpuzz-cloudformation/496f305c6c727b8abbcea4b60f187a9e
       Role:
         Fn::GetAtt:
         - LambdaExecutionRole
@@ -421,7 +438,7 @@ Resources:
       Timeout: 300
       MemorySize: 512
       Handler: com.learntechpuzz.lambda.function.CourseFunctions::findCourseMaterialsByCourseID
-      CodeUri: s3://learntechpuzz-cloudformation/8e53f51b2a268fc6be51b3201a0c6c39
+      CodeUri: s3://learntechpuzz-cloudformation/496f305c6c727b8abbcea4b60f187a9e
       Role:
         Fn::GetAtt:
         - LambdaExecutionRole
@@ -434,6 +451,28 @@ Resources:
             Method: GET
             RestApiId:
               Ref: RestApi
+  FindStudentFeedbacksByCourseIDFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName:
+        Fn::Sub: ${ApplicationName}-findstudentfeedbacksbycourseid-function
+      Runtime: java8
+      Timeout: 300
+      MemorySize: 512
+      Handler: com.learntechpuzz.lambda.function.StudentFunctions::findStudentFeedbacksByCourseID
+      CodeUri: s3://learntechpuzz-cloudformation/496f305c6c727b8abbcea4b60f187a9e
+      Role:
+        Fn::GetAtt:
+        - LambdaExecutionRole
+        - Arn
+      Events:
+        UserApi:
+          Type: Api
+          Properties:
+            Path: /studentfeedbacks/{courseId}
+            Method: GET
+            RestApiId:
+              Ref: RestApi
   FindCourseMaterialsByCourseIDAndTagFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -443,7 +482,7 @@ Resources:
       Timeout: 300
       MemorySize: 512
       Handler: com.learntechpuzz.lambda.function.CourseFunctions::findCourseMaterialsByCourseIDAndTag
-      CodeUri: s3://learntechpuzz-cloudformation/8e53f51b2a268fc6be51b3201a0c6c39
+      CodeUri: s3://learntechpuzz-cloudformation/496f305c6c727b8abbcea4b60f187a9e
       Role:
         Fn::GetAtt:
         - LambdaExecutionRole

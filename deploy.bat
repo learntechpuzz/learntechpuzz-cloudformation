@@ -41,7 +41,7 @@ set /p user_pool_id=<CognitoUserPoolId.txt
 call aws cloudformation describe-stacks --stack-name %StackName% --query "Stacks[0].Outputs[?OutputKey=='CognitoAppClientId'].OutputValue" --output text > CognitoAppClientId.txt
 set /p app_client_id=<CognitoAppClientId.txt
 
-call aws cognito-idp set-ui-customization --user-pool-id %user_pool_id% --client-id %app_client_id% --image-file fileb://./public\learntechpuzz_logo.png
+call aws cognito-idp set-ui-customization --user-pool-id %user_pool_id% --client-id %app_client_id% --image-file fileb://./public\logo.png
 
 :: Replace CognitoAuthLoginURL in public.html
 
@@ -95,6 +95,6 @@ call aws s3 cp public/public.html s3://%S3WebSiteBucketName%/public.html
 call aws s3 cp public/secured.html s3://%S3WebSiteBucketName%/secured.html
 
 :: Copy logo
-call aws s3 cp public/learntechpuzz_logo.png s3://%S3WebSiteBucketName%/learntechpuzz_logo.png
+call aws s3 cp public/logo.png s3://%S3WebSiteBucketName%/logo.png
 
 cd ..
