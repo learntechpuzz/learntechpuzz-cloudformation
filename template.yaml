@@ -442,7 +442,7 @@ Resources:
       Runtime: java8
       Timeout: 300
       MemorySize: 512
-      Handler: com.learntechpuzz.lambda.function.StudentFunctions::findStudentFeedbacksByCourseID
+      Handler: com.learntechpuzz.lambda.function.StudentFeedbackFunctions::findStudentFeedbacksByCourseID
       CodeUri: ./lambda-functions/app-lambda-functions-java/target/learntechpuzz-lambda-functions-1.0.0.jar
       Role: !GetAtt LambdaExecutionRole.Arn
       Events:

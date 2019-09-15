@@ -5,6 +5,7 @@ import axios from './../../common/axios/axios-api'
 import withErrorHandler from './../../common/withErrorHandler/withErrorHandler'
 import queryString from 'query-string'
 
+
 class CourseDetailsContainer extends Component {
 
     constructor(props) {
@@ -17,6 +18,7 @@ class CourseDetailsContainer extends Component {
             course: null,
             courseMaterials: null,
             studentFeedbacks: null,
+            coursesLink: "#",
         }
     }
 
@@ -29,6 +31,7 @@ class CourseDetailsContainer extends Component {
         this.setState({
             id_token: idToken,
             access_token: accessToken,
+            coursesLink: '/?id_token=' + idToken + '&access_token=' + accessToken,
         });
 
         this.setState({ loading: true }, () => {
@@ -53,12 +56,12 @@ class CourseDetailsContainer extends Component {
         });
     }
 
-    componentDidMount() {
+    componentWillMount() {
         this.getCourseDetails();
     }
 
     render() {
-        return (<CourseDetails studentFeedbacks={this.state.studentFeedbacks} courseMaterials={this.state.courseMaterials} course={this.state.course} rating={this.state.rating} loading={this.state.loading} />);
+        return (<CourseDetails coursesLink={this.state.coursesLink} studentFeedbacks={this.state.studentFeedbacks} courseMaterials={this.state.courseMaterials} course={this.state.course} rating={this.state.rating} loading={this.state.loading} />);
     }
 
 }

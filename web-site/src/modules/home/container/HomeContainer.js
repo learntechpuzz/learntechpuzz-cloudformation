@@ -45,6 +45,7 @@ class HomeContainer extends Component {
 
         this.props.history.push('/course-details?courseId=' + courseId + '&id_token=' + this.state.id_token + '&access_token=' + this.state.access_token);
     }
+
     render() {
         return (
             <Courses courses={this.state.courses} viewCourseDetails={(courseId) => this.viewCourseDetails(courseId)} loading={this.state.loading} />

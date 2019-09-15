@@ -335,7 +335,7 @@ Resources:
       Runtime: nodejs8.10
       Code:
         S3Bucket: learntechpuzz-cloudformation
-        S3Key: e80df5a015919d8b0288fc74cf200094
+        S3Key: 40fe9ea172a49e2b03e886eab48da5ea
       Handler: CognitoUserPoolClientSettings.handler
       Role:
         Fn::GetAtt:
@@ -350,7 +350,7 @@ Resources:
       Runtime: nodejs8.10
       Code:
         S3Bucket: learntechpuzz-cloudformation
-        S3Key: 04b51bcaae3b17ebb87db31ad8223d9a
+        S3Key: 7f296d30b89530e4b511bd4ef05c197e
       Handler: CognitoUserPoolDomain.handler
       Role:
         Fn::GetAtt:
@@ -366,7 +366,7 @@ Resources:
       Timeout: 300
       MemorySize: 512
       Handler: com.learntechpuzz.lambda.function.StudentFunctions::createStudent
-      CodeUri: s3://learntechpuzz-cloudformation/496f305c6c727b8abbcea4b60f187a9e
+      CodeUri: s3://learntechpuzz-cloudformation/28c88e4fa3de43e16b3f90491417d903
       Role:
         Fn::GetAtt:
         - LambdaExecutionRole
@@ -380,7 +380,7 @@ Resources:
       Timeout: 300
       MemorySize: 512
       Handler: com.learntechpuzz.lambda.function.AppDataLoaderFunctions::loadAppData
-      CodeUri: s3://learntechpuzz-cloudformation/496f305c6c727b8abbcea4b60f187a9e
+      CodeUri: s3://learntechpuzz-cloudformation/28c88e4fa3de43e16b3f90491417d903
       Role:
         Fn::GetAtt:
         - LambdaExecutionRole
@@ -394,7 +394,7 @@ Resources:
       Timeout: 300
       MemorySize: 512
       Handler: com.learntechpuzz.lambda.function.CourseFunctions::getAllCourses
-      CodeUri: s3://learntechpuzz-cloudformation/496f305c6c727b8abbcea4b60f187a9e
+      CodeUri: s3://learntechpuzz-cloudformation/28c88e4fa3de43e16b3f90491417d903
       Role:
         Fn::GetAtt:
         - LambdaExecutionRole
@@ -416,7 +416,7 @@ Resources:
       Timeout: 300
       MemorySize: 512
       Handler: com.learntechpuzz.lambda.function.CourseFunctions::findCourseByID
-      CodeUri: s3://learntechpuzz-cloudformation/496f305c6c727b8abbcea4b60f187a9e
+      CodeUri: s3://learntechpuzz-cloudformation/28c88e4fa3de43e16b3f90491417d903
       Role:
         Fn::GetAtt:
         - LambdaExecutionRole
@@ -438,7 +438,7 @@ Resources:
       Timeout: 300
       MemorySize: 512
       Handler: com.learntechpuzz.lambda.function.CourseFunctions::findCourseMaterialsByCourseID
-      CodeUri: s3://learntechpuzz-cloudformation/496f305c6c727b8abbcea4b60f187a9e
+      CodeUri: s3://learntechpuzz-cloudformation/28c88e4fa3de43e16b3f90491417d903
       Role:
         Fn::GetAtt:
         - LambdaExecutionRole
@@ -459,8 +459,8 @@ Resources:
       Runtime: java8
       Timeout: 300
       MemorySize: 512
-      Handler: com.learntechpuzz.lambda.function.StudentFunctions::findStudentFeedbacksByCourseID
-      CodeUri: s3://learntechpuzz-cloudformation/496f305c6c727b8abbcea4b60f187a9e
+      Handler: com.learntechpuzz.lambda.function.StudentFeedbackFunctions::findStudentFeedbacksByCourseID
+      CodeUri: s3://learntechpuzz-cloudformation/28c88e4fa3de43e16b3f90491417d903
       Role:
         Fn::GetAtt:
         - LambdaExecutionRole
@@ -482,7 +482,7 @@ Resources:
       Timeout: 300
       MemorySize: 512
       Handler: com.learntechpuzz.lambda.function.CourseFunctions::findCourseMaterialsByCourseIDAndTag
-      CodeUri: s3://learntechpuzz-cloudformation/496f305c6c727b8abbcea4b60f187a9e
+      CodeUri: s3://learntechpuzz-cloudformation/28c88e4fa3de43e16b3f90491417d903
       Role:
         Fn::GetAtt:
         - LambdaExecutionRole

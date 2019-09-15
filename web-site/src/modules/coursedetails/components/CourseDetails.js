@@ -1,8 +1,9 @@
 import React, { Fragment } from 'react'
-import { Row, Col, Card, Tab, Tabs, Nav } from 'react-bootstrap'
+import { Row, Col, Card, Tab, Tabs, Nav, Breadcrumb, BreadcrumbItem } from 'react-bootstrap'
 import StarRatings from 'react-star-ratings';
 import PdfViewer from './../../common/pdfviewer'
 import LoadingSpinner from './../../common/spinner/loadingspinner';
+import { Link } from "react-router-dom";
 
 const CourseDetails = (props) => {
     return (
@@ -10,6 +11,14 @@ const CourseDetails = (props) => {
             {props.loading ? <LoadingSpinner /> : null}
             {
                 props.course != null ?
+                    <Fragment>
+                    <div>
+                        <Breadcrumb>
+                            <BreadcrumbItem><Link to={props.coursesLink}>Courses</Link></BreadcrumbItem>
+                            <BreadcrumbItem active>{props.course.title}</BreadcrumbItem>
+                        </Breadcrumb>
+                    </div>
+
                     <Row>
                         <Col>
                             <Card style={{ width: '60rem' }}>
@@ -75,7 +84,7 @@ const CourseDetails = (props) => {
                                 </Tab>
                                 <Tab eventKey="studentFeedback" title="Student Feedback">
                                     <br />
-                                    {props.studentFeedbacks.map((studentFeedback, idx) => {
+                                    {props.studentFeedbacks != null && props.studentFeedbacks.map((studentFeedback, idx) => {
                                         return (
                                             <Row key={idx}>
                                                 <Card style={{ width: '60rem' }}>
@@ -90,7 +99,7 @@ const CourseDetails = (props) => {
                                                             name='rating'
                                                         />
                                                         <Card.Text>
-                                                        {studentFeedback.comments}
+                                                            {studentFeedback.comments}
                                                         </Card.Text>
                                                     </Card.Body>
                                                 </Card>
@@ -101,6 +110,7 @@ const CourseDetails = (props) => {
                             </Tabs>
                         </Col>
                     </Row>
+                    </Fragment>
                     : null
             }
 
